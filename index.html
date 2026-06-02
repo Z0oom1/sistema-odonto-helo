@@ -47,6 +47,12 @@
                             <span>Painel Principal</span>
                         </a>
                     </li>
+                    <li id="nav-today">
+                        <a href="#" onclick="switchTab('today')">
+                            <i data-lucide="calendar-days"></i>
+                            <span>Hoje</span>
+                        </a>
+                    </li>
                     <li id="nav-clients">
                         <a href="#" onclick="switchTab('clients')">
                             <i data-lucide="users"></i>
@@ -166,6 +172,26 @@
                     </div>
                     
                         <div class="client-grid" id="upcoming-grid"></div>
+                </div>
+            </section>
+
+            <!-- Today Tab -->
+            <section id="tab-today" class="app-tab">
+                <div class="panel-section">
+                    <div class="section-header-row" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem;">
+                        <div>
+                            <h3 style="display: flex; align-items: center; gap: 0.5rem;"><i data-lucide="calendar-check" class="icon-primary"></i> Agenda de Hoje</h3>
+                            <p class="section-desc">Gerencie a linha do tempo do dia de hoje e encaixe consultas nos horários vagos.</p>
+                        </div>
+                        <button class="btn btn-primary" onclick="openClientModalToday()">
+                            <i data-lucide="plus"></i>
+                            <span>Encaixar Hoje</span>
+                        </button>
+                    </div>
+                    
+                    <div class="today-timeline" id="today-timeline-container">
+                        <!-- Will be populated by JS -->
+                    </div>
                 </div>
             </section>
 

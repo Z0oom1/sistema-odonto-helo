@@ -345,6 +345,15 @@ function contactClient(clientId) {
   }, 600);
 }
 
+function toggleArrived(clientId) {
+  const client = clients.find(c => c.id === clientId);
+  if (!client) return;
+  client.arrived = !client.arrived;
+  saveClients();
+  renderAll();
+  showToast(client.arrived ? '✅ Presença Confirmada' : '🔄 Presença Limpa', `${client.name} status atualizado.`);
+}
+
 // ─── Statistics ─────────────────────────────────────────────────────────────
 
 function updateStats() {
@@ -393,6 +402,71 @@ function renderUpcomingTable() {
   }
 
   container.innerHTML = upcoming.map(c => buildCard(c, false)).join('');
+  lucide.createIcons();
+}
+
+function openClientModalToday(prefilledTime = '09:00') {
+  const modal = document.getElementById('client-modal');
+  document.getElementById('modal-title').innerHTML = '<i data-lucide="user-plus"></i> Encaixar Hoje';
+  document.getElementById('client-form').reset();
+  document.getElementById('client-id').value = '';
+
+  const today = new Date();
+  const yyyy = today.getFullYear();
+  const mm = String(today.getMonth() + 1).padStart(2, '0');
+  const dd = String(today.getDate()).padStart(2, '0');
+  document.getElementById('client-date').value = `${yyyy}-${mm}-${dd}`;
+  document.getElementById('client-time').value = prefilledTime;
+
+  modal.classList.add('active');
+  lucide.createIcons();
+
+  setTimeout(() => document.getElementById('client-name').focus(), 100);
+}
+
+function renderTodayTimeline() {
+  const container = document.getElementById('today-timeline-container');
+  if (!container) return;
+
+  const today = new Date();
+  const yyyy = today.getFullYear();
+  const mm = String(today.getMonth() + 1).padStart(2, '0');
+  const dd = String(today.getDate()).padStart(2, '0');
+  const todayStr = `${yyyy}-${mm}-${dd}`;
+
+  const todayClients = clients.filter(c => c.date === todayStr);
+  const defaultHours = ["08:00", "09:00", "10:00", "11:00", "12:00", "13:00", "14:00", "15:00", "16:00", "17:00", "18:00", "19:00"];
+  const occupiedTimes = todayClients.map(c => c.time);
+  
+  const allTimes = Array.from(new Set([...defaultHours, ...occupiedTimes])).sort();
+
+  let html = '';
+  allTimes.forEach(time => {
+    const clientsAtTime = todayClients.filter(c => c.time === time);
+    
+    html += `<div class="timeline-row">
+      <div class="timeline-time">${time}</div>
+      <div class="timeline-slot-content">`;
+      
+    if (clientsAtTime.length > 0) {
+      // Group them inside a horizontal row or vertical list
+      html += `<div class="client-grid">`;
+      clientsAtTime.forEach(c => {
+        html += buildCard(c, true);
+      });
+      html += `</div>`;
+    } else {
+      html += `
+        <div class="timeline-free-slot" onclick="openClientModalToday('${time}')">
+          <i data-lucide="plus-circle"></i>
+          <span>Horário Disponível — Clique para encaixar</span>
+        </div>`;
+    }
+    
+    html += `</div></div>`;
+  });
+
+  container.innerHTML = html;
   lucide.createIcons();
 }
 
@@ -446,17 +520,30 @@ function buildCard(client, showCpf) {
     ? `<div class="card-emote" title="Emote">🦷</div>`
     : '';
 
+  const arriveButton = client.arrived
+    ? `<button type="button" class="btn-arrive arrived" onclick="event.stopPropagation(); toggleArrived('${client.id}')" title="Desmarcar Chegada"><i data-lucide="check-check"></i> Chegou!</button>`
+    : `<button type="button" class="btn-arrive" onclick="event.stopPropagation(); toggleArrived('${client.id}')" title="Marcar Chegada"><i data-lucide="check"></i> Chegou</button>`;
+
+  const arrivedTag = client.arrived
+    ? `<span class="arrived-tag">(Esse já foi)</span>`
+    : '';
+
+  const arrivedClass = client.arrived ? 'arrived' : '';
+
   return `
-    <div class="client-card" data-id="${client.id}">
+    <div class="client-card ${arrivedClass}" data-id="${client.id}">
       ${avatarHtml}
       <div class="card-content">
-        <div class="cell-client-name">${escapeHtml(client.name)}</div>
+        <div class="cell-client-name">${escapeHtml(client.name)} ${arrivedTag}</div>
         <div class="cell-phone">${escapeHtml(client.phone)}</div>
         ${cpfCell}
         <div class="procedure-badge">${escapeHtml(client.type)}</div>
         <div class="cell-datetime">${dateDisplay} às ${client.time}</div>
         <div class="reminder-status">${reminderStatus}</div>
-        <div class="status-badge ${statusClass}">${statusLabel}</div>
+        <div class="card-footer" style="display:flex; justify-content:space-between; align-items:center; margin-top:auto; gap:0.5rem; flex-wrap:wrap;">
+          <div class="status-badge ${statusClass}">${statusLabel}</div>
+          ${arriveButton}
+        </div>
       </div>
     </div>`;
 }
@@ -597,6 +684,7 @@ function renderAll() {
   clients = sortChronologically(clients);
   updateStats();
   renderUpcomingTable();
+  renderTodayTimeline();
   filterClients();
   attachContextMenuEvents();
   updateGreeting();
@@ -659,6 +747,13 @@ function saveClient(event) {
   const date = document.getElementById('client-date').value;
   const time = document.getElementById('client-time').value;
   const status = document.getElementById('client-status').value;
+
+  const appointmentDate = parseLocalDateTime(date, time);
+  const now = new Date();
+  if (appointmentDate < now) {
+    showToast('⚠ Horário Passado', 'Não é permitido agendar em data/hora passada.');
+    return;
+  }
 
   if (id) {
     const idx = clients.findIndex(c => c.id === id);
