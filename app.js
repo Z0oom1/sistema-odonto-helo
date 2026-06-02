@@ -13,15 +13,15 @@ const CLINIC_NAME   = 'Novo Sorriso';
 
 // Mensagens padrão de lembrete
 const DEFAULT_TOMORROW_MESSAGES = [
-  "Olá, [nome]! 😊 Aqui é da clínica *[clinica]*!\n\nPassando para lembrar que sua consulta de *[procedimento]* está marcada para *amanhã*, dia *[data]*, às *[hora]*. Faltam apenas *1 dia*!\n\nConfirma a presença? A gente está ansiosa para te ver! 🦷⭐",
-  "Oi, [nome]! ⭐ Tudo bem?\n\nSou da equipe *[clinica]* e vim te lembrar que amanhã, *[data]* às *[hora]*, temos sua consulta de *[procedimento]* agendada!\n\nNos vemos amanhã. Qualquer dúvida, pode chamar! 😄",
-  "Olá, [nome]! 🌸 Aqui é da *[clinica]*.\n\nSó um lembrete carinhoso: sua consulta (*[procedimento]*) é *amanhã*, dia *[data]*, às *[hora]*. Falta 1 dia!\n\nUm sorriso lindo te espera — até amanhã! 🦷💖"
+  "Olá, *[nome]*! Tudo bem?\n\nPassando para lembrar da sua consulta de *[procedimento]* amanhã, dia *[data]*, às *[hora]* na *[clinica]*.\n\nPodemos confirmar sua presença? ✨",
+  "Oi, *[nome]*! 🦷\n\nLembrete carinhoso da sua consulta de *[procedimento]* marcada para amanhã, às *[hora]*.\n\nEstamos ansiosos para te ver! Até logo! 😊",
+  "Olá, *[nome]*! 🌸\n\nSua consulta de *[procedimento]* na *[clinica]* é amanhã, às *[hora]*.\n\nQualquer dúvida, estamos à disposição. Até amanhã! ⭐"
 ];
 
 const DEFAULT_TODAY_MESSAGES = [
-  "Olá, [nome]! 🦷⭐ Aqui é da clínica *[clinica]*!\n\nO grande dia chegou! Sua consulta de *[procedimento]* é *hoje*, dia *[data]*, às *[hora]*.\n\nEstamos te esperando com muito carinho! Não se esqueça! 😊💖",
-  "Oi, [nome]! 🌸 Bom dia/boa tarde!\n\nSou da equipe *[clinica]* e vim te lembrar que hoje, *[data]* às *[hora]*, temos sua consulta de *[procedimento]*!\n\nNos vemos em breve, vai ser ótimo! 🙌✨",
-  "[nome], hoje é o dia! 🎉\n\nSua consulta de *[procedimento]* na *[clinica]* é hoje, *[data]* às *[hora]*.\n\nTe esperamos com todo cuidado e carinho! 💕🦷"
+  "Olá, *[nome]*! 🦷\n\nLembrete da sua consulta de *[procedimento]* hoje, às *[hora]*, na *[clinica]*.\n\nAté breve! ✨",
+  "Oi, *[nome]*! Tudo bem?\n\nEstamos te esperando hoje, às *[hora]*, para sua consulta de *[procedimento]*.\n\nNos vemos em breve! 😊",
+  "Olá, *[nome]*! 🌸\n\nSua consulta de *[procedimento]* é hoje, às *[hora]*.\n\nEstamos prontos para te receber! Até logo! ⭐"
 ];
 
 const MASCOT_MESSAGES = [
@@ -54,7 +54,8 @@ function saveClients() {
 
 function cleanStringForWhatsapp(str) {
   if (!str) return '';
-  return str.replace(/[\uFE00-\uFE0F]/g, '');
+  // Removido o filtro de variation selectors que causava caracteres inválidos
+  return str;
 }
 
 function sortChronologically(clientArray) {
@@ -71,96 +72,8 @@ function loadClients() {
     clients = JSON.parse(raw);
     clients = sortChronologically(clients);
   } else {
-    const today = new Date();
-    const formatDateStr = (d) => {
-      const yyyy = d.getFullYear();
-      const mm = String(d.getMonth() + 1).padStart(2, '0');
-      const dd = String(d.getDate()).padStart(2, '0');
-      return `${yyyy}-${mm}-${dd}`;
-    };
-    
-    const todayStr = formatDateStr(today);
-    
-    const tomorrow = new Date();
-    tomorrow.setDate(today.getDate() + 1);
-    const tomorrowStr = formatDateStr(tomorrow);
-    
-    const dayAfterTomorrow = new Date();
-    dayAfterTomorrow.setDate(today.getDate() + 2);
-    const dayAfterTomorrowStr = formatDateStr(dayAfterTomorrow);
-    
-    const nextWeek = new Date();
-    nextWeek.setDate(today.getDate() + 6);
-    const nextWeekStr = formatDateStr(nextWeek);
-    
-    clients = [
-      {
-        id: 'mock-1',
-        name: 'Mariana Santos Silva',
-        phone: '11988887777',
-        cpf: '123.456.789-00',
-        type: 'Limpeza & Profilaxia',
-        date: todayStr,
-        time: '14:30',
-        status: 'confirmed',
-        notifiedTomorrow: true,
-        notifiedToday: false,
-        createdAt: new Date().toISOString()
-      },
-      {
-        id: 'mock-2',
-        name: 'Enzo Rodrigues Souza',
-        phone: '21977776666',
-        cpf: '987.654.321-11',
-        type: 'Aparelho / Ortodontia',
-        date: tomorrowStr,
-        time: '09:00',
-        status: 'confirmed',
-        notifiedTomorrow: false,
-        notifiedToday: false,
-        createdAt: new Date().toISOString()
-      },
-      {
-        id: 'mock-3',
-        name: 'Clara Costa Lima',
-        phone: '19999998888',
-        cpf: '',
-        type: 'Clareamento Dental',
-        date: dayAfterTomorrowStr,
-        time: '16:00',
-        status: 'confirmed',
-        notifiedTomorrow: false,
-        notifiedToday: false,
-        createdAt: new Date().toISOString()
-      },
-      {
-        id: 'mock-4',
-        name: 'João Pedro Ramos',
-        phone: '11966665555',
-        cpf: '456.789.123-22',
-        type: 'Canal / Endodontia',
-        date: nextWeekStr,
-        time: '10:30',
-        status: 'confirmed',
-        notifiedTomorrow: false,
-        notifiedToday: false,
-        createdAt: new Date().toISOString()
-      },
-      {
-        id: 'mock-5',
-        name: 'Ana Beatriz Ramos',
-        phone: '11955554444',
-        cpf: '321.654.987-33',
-        type: 'Restauração',
-        date: todayStr,
-        time: '11:00',
-        status: 'canceled',
-        notifiedTomorrow: false,
-        notifiedToday: false,
-        createdAt: new Date().toISOString()
-      }
-    ];
-    clients = sortChronologically(clients);
+    // Inicia o sistema sem clientes predefinidos
+    clients = [];
     saveClients();
   }
 }
@@ -262,12 +175,13 @@ function buildWhatsAppLink(client) {
     rawMessage = replacePlaceholders(randomTemplate, client);
   }
 
-  rawMessage = `${greeting}! ` + rawMessage;
-  rawMessage = cleanStringForWhatsapp(rawMessage);
+  // Garante uma saudação única e formatação limpa
+  const finalMessage = `${greeting}! ${rawMessage}`;
+  const cleanedMessage = cleanStringForWhatsapp(finalMessage);
 
   const phone = cleanPhone(client.phone);
   const waPhone = phone.startsWith('55') ? phone : `55${phone}`;
-  return `https://wa.me/${waPhone}?text=${encodeURIComponent(rawMessage)}`;
+  return `https://wa.me/${waPhone}?text=${encodeURIComponent(cleanedMessage)}`;
 }
 
 // ─── Formatting helpers ──────────────────────────────────────────────────────
