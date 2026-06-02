@@ -13,15 +13,15 @@ const CLINIC_NAME   = 'Novo Sorriso';
 
 // Mensagens padrão de lembrete
 const DEFAULT_TOMORROW_MESSAGES = [
-  "Olá, *[nome]*! Tudo bem?\n\nPassando para lembrar da sua consulta de *[procedimento]* amanhã, dia *[data]*, às *[hora]* na *[clinica]*.\n\nPodemos confirmar sua presença? ✨",
-  "Oi, *[nome]*! 🦷\n\nLembrete carinhoso da sua consulta de *[procedimento]* marcada para amanhã, às *[hora]*.\n\nEstamos ansiosos para te ver! Até logo! 😊",
-  "Olá, *[nome]*! 🌸\n\nSua consulta de *[procedimento]* na *[clinica]* é amanhã, às *[hora]*.\n\nQualquer dúvida, estamos à disposição. Até amanhã! ⭐"
+  "🌟 *[saudacao], [nome]!* Seja muito bem-vindo(a) à *Clínica Odontológica [clinica]* 🦷✨\n\nPassando para te lembrar, com carinho, da sua consulta de *[procedimento]*:\n\n🗓️ *AMANHÃ*\n⏰ *ÀS [hora]*\n\n💙 Nossa equipe já está preparada para te receber com todo cuidado, conforto e atenção para que você tenha a melhor experiência possível!\n\n📍 *Clínica [clinica]*\n🦷 Cuidando do seu sorriso com carinho e dedicação\n\nSe houver qualquer dúvida ou imprevisto, estamos à disposição por aqui 💬\n\n✨ *Te esperamos! Até logo!* 😄",
+  "Olá, *[nome]*! 🦷✨\n\nLembrete especial da sua consulta de *[procedimento]* marcada para amanhã às *[hora]* na *[clinica]*.\n\nConfirmamos sua presença? 🗓️",
+  "Oi, *[nome]*! 🌸\n\nSua consulta de *[procedimento]* na *[clinica]* é amanhã, às *[hora]*.\n\nEstamos ansiosos para te ver e cuidar do seu sorriso! Até amanhã! ⭐"
 ];
 
 const DEFAULT_TODAY_MESSAGES = [
-  "Olá, *[nome]*! 🦷\n\nLembrete da sua consulta de *[procedimento]* hoje, às *[hora]*, na *[clinica]*.\n\nAté breve! ✨",
-  "Oi, *[nome]*! Tudo bem?\n\nEstamos te esperando hoje, às *[hora]*, para sua consulta de *[procedimento]*.\n\nNos vemos em breve! 😊",
-  "Olá, *[nome]*! 🌸\n\nSua consulta de *[procedimento]* é hoje, às *[hora]*.\n\nEstamos prontos para te receber! Até logo! ⭐"
+  "🌟 *[saudacao], [nome]!* Seja muito bem-vindo(a) à *Clínica Odontológica [clinica]* 🦷✨\n\nPassando para te lembrar, com carinho, da sua consulta de *[procedimento]*:\n\n🗓️ *HOJE*\n⏰ *ÀS [hora]*\n\n💙 Nossa equipe já está preparada para te receber com todo cuidado, conforto e atenção para que você tenha a melhor experiência possível!\n\n📍 *Clínica [clinica]*\n🦷 Cuidando do seu sorriso com carinho e dedicação\n\nSe houver qualquer dúvida ou imprevisto, estamos à disposição por aqui 💬\n\n✨ *Te esperamos! Até logo!* 😄",
+  "Oi, *[nome]*! 🦷\n\nO grande dia chegou! Sua consulta de *[procedimento]* é hoje às *[hora]* na *[clinica]*.\n\nEstamos te esperando! 😊✨",
+  "Olá, *[nome]*! 🌸\n\nLembrete da sua consulta de *[procedimento]* hoje, às *[hora]*.\n\nSua saúde bucal em primeiro lugar! Até logo! ⭐"
 ];
 
 const MASCOT_MESSAGES = [
@@ -152,17 +152,18 @@ function resetAllTemplates() {
 
 function replacePlaceholders(templateStr, client) {
   const dateDisp = formatDateDisplay(client.date);
+  const greeting = getGreeting();
   
   return templateStr
     .replace(/\[nome\]/gi, client.name)
     .replace(/\[procedimento\]/gi, client.type)
     .replace(/\[data\]/gi, dateDisp)
     .replace(/\[hora\]/gi, client.time)
-    .replace(/\[clinica\]/gi, CLINIC_NAME);
+    .replace(/\[clinica\]/gi, CLINIC_NAME)
+    .replace(/\[saudacao\]/gi, greeting);
 }
 
 function buildWhatsAppLink(client) {
-  const greeting  = getGreeting();
   const diff      = daysDiff(parseLocalDateTime(client.date, client.time));
 
   let rawMessage = '';
@@ -175,9 +176,8 @@ function buildWhatsAppLink(client) {
     rawMessage = replacePlaceholders(randomTemplate, client);
   }
 
-  // Garante uma saudação única e formatação limpa
-  const finalMessage = `${greeting}! ${rawMessage}`;
-  const cleanedMessage = cleanStringForWhatsapp(finalMessage);
+  // A saudação agora é tratada via placeholder [saudacao] dentro do template
+  const cleanedMessage = cleanStringForWhatsapp(rawMessage);
 
   const phone = cleanPhone(client.phone);
   const waPhone = phone.startsWith('55') ? phone : `55${phone}`;
