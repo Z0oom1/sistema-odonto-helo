@@ -24,6 +24,23 @@
     <!-- Helo Sparkles Background Container -->
     <div id="sparkle-container" class="sparkle-container"></div>
 
+    <!-- Loading Screen -->
+    <div id="loading-screen" class="loading-screen active">
+        <div class="loading-container">
+            <div class="loading-logo">
+                <div class="brand-icon-loading">
+                    <i data-lucide="sparkles" class="brand-glow-icon"></i>
+                </div>
+            </div>
+            <h2 class="loading-title">Novo Sorriso</h2>
+            <p class="loading-subtitle">Carregando seu sistema odontologico...</p>
+            <div class="loading-spinner">
+                <div class="spinner-ring"></div>
+            </div>
+            <p class="loading-message">Preparando tudo com carinho 🌸</p>
+        </div>
+    </div>
+
     <!-- App Container -->
     <div class="app-layout">
         
@@ -47,12 +64,7 @@
                             <span>Painel Principal</span>
                         </a>
                     </li>
-                    <li id="nav-today">
-                        <a href="#" onclick="switchTab('today')">
-                            <i data-lucide="calendar-days"></i>
-                            <span>Hoje</span>
-                        </a>
-                    </li>
+
                     <li id="nav-clients">
                         <a href="#" onclick="switchTab('clients')">
                             <i data-lucide="users"></i>

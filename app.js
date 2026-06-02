@@ -1684,12 +1684,22 @@ function drawFlappyGame() {
 
 // ─── Initialize App ─────────────────────────────────────────────────────────
 
+function hideLoadingScreen() {
+  const loadingScreen = document.getElementById('loading-screen');
+  if (loadingScreen) {
+    setTimeout(() => {
+      loadingScreen.classList.add('hidden');
+    }, 800);
+  }
+}
+
 function init() {
   loadClients();
   loadTemplates();
   loadTheme();
   applyInputMasks();
   renderAll();
+  hideLoadingScreen();
 }
 
 document.addEventListener('DOMContentLoaded', init);
