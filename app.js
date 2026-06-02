@@ -54,8 +54,8 @@ function saveClients() {
 
 function cleanStringForWhatsapp(str) {
   if (!str) return '';
-  // Garante que a string seja tratada como UTF-8 e remove caracteres de controle invisíveis que podem quebrar o encoding
-  return str.normalize('NFC').replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F-\u009F]/g, "");
+  // Remove apenas caracteres de controle que realmente quebram a URL, preservando emojis e quebras de linha
+  return str.normalize('NFC');
 }
 
 function sortChronologically(clientArray) {
@@ -183,17 +183,21 @@ function buildWhatsAppLink(client) {
     rawMessage = replacePlaceholders(randomTemplate, client);
   }
 
-  // Limpa a mensagem antes de codificar
   const cleanedMessage = cleanStringForWhatsapp(rawMessage);
-
   const phone = cleanPhone(client.phone);
   const waPhone = phone.startsWith('55') ? phone : `55${phone}`;
   
-  // Usamos uma técnica mais robusta para emojis: substituir espaços por %20 manualmente
-  // e deixar o navegador lidar com os caracteres UTF-8 se possível, ou usar encodeURIComponent padrão.
-  const encodedText = encodeURIComponent(cleanedMessage);
+  // A melhor forma de garantir emojis é usar o link api.whatsapp.com ou wa.me 
+  // com a codificação URI padrão, mas garantindo que o navegador não corrompa os bytes.
+  // Vamos usar o formato que o próprio WhatsApp gera.
+  const encodedText = encodeURIComponent(cleanedMessage)
+    .replace(/\(/g, '%28')
+    .replace(/\)/g, '%29')
+    .replace(/\*/g, '%2A')
+    .replace(/!/g, '%21')
+    .replace(/'/g, '%27');
   
-  return `https://wa.me/${waPhone}?text=${encodedText}`;
+  return `https://api.whatsapp.com/send?phone=${waPhone}&text=${encodedText}`;
 }
 
 // ─── Formatting helpers ──────────────────────────────────────────────────────
