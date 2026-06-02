@@ -54,8 +54,8 @@ function saveClients() {
 
 function cleanStringForWhatsapp(str) {
   if (!str) return '';
-  // Removido o filtro de variation selectors que causava caracteres inválidos
-  return str;
+  // Garante que a string seja tratada como UTF-8 e remove caracteres de controle invisíveis que podem quebrar o encoding
+  return str.normalize('NFC').replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F-\u009F]/g, "");
 }
 
 function sortChronologically(clientArray) {
@@ -176,11 +176,15 @@ function buildWhatsAppLink(client) {
     rawMessage = replacePlaceholders(randomTemplate, client);
   }
 
-  // A saudação agora é tratada via placeholder [saudacao] dentro do template
+  // Limpa a mensagem antes de codificar
   const cleanedMessage = cleanStringForWhatsapp(rawMessage);
 
   const phone = cleanPhone(client.phone);
   const waPhone = phone.startsWith('55') ? phone : `55${phone}`;
+  
+  // Usamos encodeURIComponent mas garantimos que a string de entrada está limpa.
+  // O WhatsApp Web/Desktop às vezes tem problemas com espaços codificados como %20 em excesso,
+  // mas o encodeURIComponent é o padrão correto.
   return `https://wa.me/${waPhone}?text=${encodeURIComponent(cleanedMessage)}`;
 }
 
