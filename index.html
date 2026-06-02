@@ -1,0 +1,514 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema Odonto da Helo - Novo Sorriso</title>
+    
+    <!-- SEO and Meta Tags -->
+    <meta name="description" content="Sistema minimalista de controle de clientes e lembretes para a clínica odontológica Novo Sorriso.">
+    <meta name="author" content="Helo">
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@300..700&family=Plus+Jakarta+Sans:wght@300..800&family=Quicksand:wght@300..700&display=swap" rel="stylesheet">
+    
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    
+    <!-- Project Stylesheet -->
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <!-- Helo Sparkles Background Container -->
+    <div id="sparkle-container" class="sparkle-container"></div>
+
+    <!-- App Container -->
+    <div class="app-layout">
+        
+        <!-- Sidebar / Navigation -->
+        <aside class="sidebar">
+            <div class="sidebar-brand">
+                <div class="brand-icon">
+                    <i data-lucide="sparkles" class="brand-glow-icon"></i>
+                </div>
+                <div class="brand-text">
+                    <h1>Novo Sorriso</h1>
+                    <span>Odonto da Helo</span>
+                </div>
+            </div>
+            
+            <nav class="sidebar-nav">
+                <ul>
+                    <li class="active" id="nav-dashboard">
+                        <a href="#" onclick="switchTab('dashboard')">
+                            <i data-lucide="layout-dashboard"></i>
+                            <span>Painel Principal</span>
+                        </a>
+                    </li>
+                    <li id="nav-clients">
+                        <a href="#" onclick="switchTab('clients')">
+                            <i data-lucide="users"></i>
+                            <span>Banco de Clientes</span>
+                        </a>
+                    </li>
+                    <li id="nav-templates">
+                        <a href="#" onclick="switchTab('templates')">
+                            <i data-lucide="message-square-text"></i>
+                            <span>Textos de Envio</span>
+                        </a>
+                    </li>
+                    <li id="nav-games" style="display: none;" class="helo-only-nav">
+                        <a href="#" onclick="switchTab('games')">
+                            <i data-lucide="gamepad-2"></i>
+                            <span>Joguinhos 🎮🌸</span>
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+
+            <!-- Cute Mascot Area (Helo Theme specific) -->
+            <div class="mascot-container" id="helo-mascot">
+                <div class="mascot-card">
+                    <div class="cute-tooth-mascot">
+                        <div class="tooth-body">
+                            <div class="tooth-root left"></div>
+                            <div class="tooth-root right"></div>
+                            <div class="tooth-face">
+                                <div class="tooth-eyes">
+                                    <span class="eye left"></span>
+                                    <span class="eye right"></span>
+                                </div>
+                                <div class="tooth-blush"></div>
+                                <div class="tooth-mouth"></div>
+                            </div>
+                            <div class="tooth-wings">
+                                <div class="wing left"></div>
+                                <div class="wing right"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mascot-bubble">
+                        <p id="mascot-speech">Olá, Helo! Vamos cuidar de lindos sorrisos hoje? 🌸</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Theme Picker -->
+            <div class="theme-selector-container">
+                <span class="selector-title">Tema do Sistema</span>
+                <div class="theme-picker">
+                    <button class="theme-btn active" id="btn-theme-light" onclick="setTheme('light')" title="Modo Claro">
+                        <i data-lucide="sun"></i>
+                        <span>Claro</span>
+                    </button>
+                    <button class="theme-btn" id="btn-theme-dark" onclick="setTheme('dark')" title="Modo Escuro">
+                        <i data-lucide="moon"></i>
+                        <span>Escuro</span>
+                    </button>
+                    <button class="theme-btn" id="btn-theme-helo" onclick="setTheme('helo')" title="Modo Helo 🌸">
+                        <i data-lucide="heart"></i>
+                        <span>Helo 🌸</span>
+                    </button>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content Area -->
+        <main class="main-content">
+            <header class="top-bar">
+                <div class="welcome-message">
+                    <h2 id="greeting-title">Bom dia, Helo! 👋</h2>
+                    <p id="greeting-subtitle">Veja a lista cronológica de atendimentos.</p>
+                </div>
+                <div class="top-bar-actions">
+                    <button class="btn btn-primary" onclick="openClientModal()" id="btn-add-client-top">
+                        <i data-lucide="plus"></i>
+                        <span>Adicionar Cliente</span>
+                    </button>
+                </div>
+            </header>
+
+            <!-- Dashboard / Main Tab -->
+            <section id="tab-dashboard" class="app-tab active">
+                <!-- Compact Top Stats (Space saving) -->
+                <div class="stats-row">
+                    <div class="mini-stat">
+                        <span class="stat-num" id="stat-total-clients">0</span>
+                        <span class="stat-txt">clientes</span>
+                    </div>
+                    <div class="mini-stat">
+                        <span class="stat-num" id="stat-today-appointments">0</span>
+                        <span class="stat-txt">hoje</span>
+                    </div>
+                    <div class="mini-stat">
+                        <span class="stat-num" id="stat-tomorrow-appointments">0</span>
+                        <span class="stat-txt">amanhã</span>
+                    </div>
+                    <div class="mini-stat alert-num" id="stat-pending-badge">
+                        <span class="stat-num" id="stat-pending-contacts">0</span>
+                        <span class="stat-txt">avisos pendentes</span>
+                    </div>
+                </div>
+
+                <!-- Helper Banner -->
+                <div class="helper-banner">
+                    <i data-lucide="info"></i>
+                    <span>Dica: Clique com o **botão direito** (ou toque longo no celular) em qualquer cliente para abrir o menu de ações!</span>
+                </div>
+
+                <!-- Chronological Client List (Strict Order Ascending) -->
+                <div class="panel-section">
+                    <div class="section-header">
+                        <h3><i data-lucide="calendar" class="icon-primary"></i> Próximos Atendimentos (Ordem Cronológica)</h3>
+                        <p class="section-desc">Clientes organizados por ordem crescente de data e hora de agendamento.</p>
+                    </div>
+                    
+                    <div class="table-container">
+                        <table class="data-table" id="upcoming-table">
+                            <thead>
+                                <tr>
+                                    <th>Cliente</th>
+                                    <th>Procedimento</th>
+                                    <th>Data e Hora</th>
+                                    <th>Aviso Lembrete</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody id="upcoming-tbody">
+                                <!-- Loaded dynamically in ascending chronological order -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- All Clients Tab -->
+            <section id="tab-clients" class="app-tab">
+                <div class="panel-section">
+                    <div class="section-header">
+                        <h3><i data-lucide="database" class="icon-primary"></i> Banco Completo</h3>
+                        <p class="section-desc">Busque ou filtre todos os seus clientes cadastrados no sistema.</p>
+                    </div>
+
+                    <!-- Search and Filter Bar -->
+                    <div class="control-bar">
+                        <div class="search-input-wrapper">
+                            <i data-lucide="search"></i>
+                            <input type="text" id="client-search" placeholder="Buscar por nome, telefone ou CPF..." oninput="filterClients()">
+                        </div>
+                        <div class="filters-wrapper">
+                            <div class="select-wrapper">
+                                <i data-lucide="filter"></i>
+                                <select id="filter-status" onchange="filterClients()">
+                                    <option value="all">Todos os Status</option>
+                                    <option value="confirmed">Confirmados</option>
+                                    <option value="canceled">Cancelados</option>
+                                </select>
+                            </div>
+                            <div class="select-wrapper">
+                                <i data-lucide="clock"></i>
+                                <select id="filter-timeframe" onchange="filterClients()">
+                                    <option value="all">Qualquer Data</option>
+                                    <option value="today">Hoje</option>
+                                    <option value="tomorrow">Amanhã</option>
+                                    <option value="upcoming">Próximos</option>
+                                    <option value="past">Passados</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Full Database Table -->
+                    <div class="table-container">
+                        <table class="data-table" id="all-clients-table">
+                            <thead>
+                                <tr>
+                                    <th>Cliente</th>
+                                    <th>CPF</th>
+                                    <th>Procedimento</th>
+                                    <th>Data e Hora</th>
+                                    <th>Aviso Lembrete</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody id="all-clients-tbody">
+                                <!-- Dynamic complete clients table -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Message Templates Tab -->
+            <section id="tab-templates" class="app-tab">
+                <div class="panel-section">
+                    <div class="section-header">
+                        <h3><i data-lucide="message-square-text" class="icon-primary"></i> Personalização de Lembretes</h3>
+                        <p class="section-desc">Personalize as mensagens automatizadas de WhatsApp. Use as seguintes tags para inserir dados automaticamente:</p>
+                        <div class="tags-helper">
+                            <span class="tag-badge"><code>[nome]</code> Nome do Paciente</span>
+                            <span class="tag-badge"><code>[procedimento]</code> Consulta/Procedimento</span>
+                            <span class="tag-badge"><code>[data]</code> Data da Consulta</span>
+                            <span class="tag-badge"><code>[hora]</code> Hora da Consulta</span>
+                            <span class="tag-badge"><code>[clinica]</code> Clínica Novo Sorriso</span>
+                        </div>
+                    </div>
+
+                    <form id="templates-form" onsubmit="saveTemplates(event)">
+                        <!-- Lembretes de Amanhã (1 dia antes) -->
+                        <div class="template-group-box">
+                            <h4 class="group-box-title">📅 Lembrete: 1 Dia de Antecedência (Amanhã)</h4>
+                            <p class="group-box-desc">O sistema selecionará aleatoriamente uma das 3 versões abaixo para manter as mensagens dinâmicas e naturais.</p>
+                            
+                            <div class="form-group">
+                                <div class="template-header-row">
+                                    <label for="template-tomorrow-0">Versão 1 (Principal)</label>
+                                    <button type="button" class="btn-text-link" onclick="resetSingleTemplate('tomorrow', 0)">Restaurar Padrão</button>
+                                </div>
+                                <textarea id="template-tomorrow-0" rows="3" class="template-textarea" required></textarea>
+                            </div>
+                            <div class="form-group">
+                                <div class="template-header-row">
+                                    <label for="template-tomorrow-1">Versão 2 (Amigável)</label>
+                                    <button type="button" class="btn-text-link" onclick="resetSingleTemplate('tomorrow', 1)">Restaurar Padrão</button>
+                                </div>
+                                <textarea id="template-tomorrow-1" rows="3" class="template-textarea" required></textarea>
+                            </div>
+                            <div class="form-group">
+                                <div class="template-header-row">
+                                    <label for="template-tomorrow-2">Versão 3 (Carinhosa)</label>
+                                    <button type="button" class="btn-text-link" onclick="resetSingleTemplate('tomorrow', 2)">Restaurar Padrão</button>
+                                </div>
+                                <textarea id="template-tomorrow-2" rows="3" class="template-textarea" required></textarea>
+                            </div>
+                        </div>
+
+                        <!-- Lembretes do Dia da Consulta (Hoje) -->
+                        <div class="template-group-box">
+                            <h4 class="group-box-title">⚡ Lembrete: No Dia da Consulta (Hoje)</h4>
+                            <p class="group-box-desc">Mensagens enviadas no dia do atendimento. Também rotaciona entre as 3 opções abaixo.</p>
+                            
+                            <div class="form-group">
+                                <div class="template-header-row">
+                                    <label for="template-today-0">Versão 1 (Principal)</label>
+                                    <button type="button" class="btn-text-link" onclick="resetSingleTemplate('today', 0)">Restaurar Padrão</button>
+                                </div>
+                                <textarea id="template-today-0" rows="3" class="template-textarea" required></textarea>
+                            </div>
+                            <div class="form-group">
+                                <div class="template-header-row">
+                                    <label for="template-today-1">Versão 2 (Amigável)</label>
+                                    <button type="button" class="btn-text-link" onclick="resetSingleTemplate('today', 1)">Restaurar Padrão</button>
+                                </div>
+                                <textarea id="template-today-1" rows="3" class="template-textarea" required></textarea>
+                            </div>
+                            <div class="form-group">
+                                <div class="template-header-row">
+                                    <label for="template-today-2">Versão 3 (Divertida)</label>
+                                    <button type="button" class="btn-text-link" onclick="resetSingleTemplate('today', 2)">Restaurar Padrão</button>
+                                </div>
+                                <textarea id="template-today-2" rows="3" class="template-textarea" required></textarea>
+                            </div>
+                        </div>
+
+                        <div class="template-footer-actions">
+                            <button type="button" class="btn btn-secondary" onclick="resetAllTemplates()">Restaurar Todos os Padrões</button>
+                            <button type="submit" class="btn btn-primary"><i data-lucide="save"></i> Salvar Alterações</button>
+                        </div>
+                    </form>
+                </div>
+            </section>
+
+            <!-- Helo Theme Easter Egg Games Tab -->
+            <section id="tab-games" class="app-tab">
+                <div class="panel-section games-panel">
+                    <div class="section-header">
+                        <h3><i data-lucide="gamepad-2" class="icon-primary"></i> Estação de Joguinhos da Helo 🌸🎮</h3>
+                        <p class="section-desc">Divirta-se jogando mini-games clássicos infinitos estilizados no tema da Helo!</p>
+                    </div>
+
+                    <!-- Mini Games Selector Navigation -->
+                    <div class="games-selector-grid">
+                        <div class="game-select-card active" id="game-card-snake" onclick="selectMiniGame('snake')">
+                            <div class="game-card-icon"><i data-lucide="sparkles"></i></div>
+                            <h4>Cobrinha do Sorriso</h4>
+                            <p>Coma os brilhos estelares e cresça sem bater nas paredes!</p>
+                        </div>
+                        <div class="game-select-card" id="game-card-dino" onclick="selectMiniGame('dino')">
+                            <div class="game-card-icon"><i data-lucide="activity"></i></div>
+                            <h4>Dentinho Corre</h4>
+                            <p>Ajude o Dentinho a pular por cima dos doces e cáries!</p>
+                        </div>
+                        <div class="game-select-card" id="game-card-flappy" onclick="selectMiniGame('flappy')">
+                            <div class="game-card-icon"><i data-lucide="wind"></i></div>
+                            <h4>Dentinho Voador</h4>
+                            <p>Bata as asinhas do dente e desvie dos chocolates gigantes!</p>
+                        </div>
+                    </div>
+
+                    <!-- Canvas Gameplay Container -->
+                    <div class="game-arena-wrapper">
+                        <div class="game-score-bar">
+                            <div>Recorde: <span id="game-highscore" class="high-score-val">0</span> ⭐</div>
+                            <div>Pontuação: <span id="game-currentscore" class="current-score-val">0</span> ⭐</div>
+                        </div>
+                        
+                        <div class="canvas-container">
+                            <canvas id="game-canvas" width="600" height="400"></canvas>
+                            <!-- Start / GameOver overlay screen -->
+                            <div id="game-overlay" class="game-overlay">
+                                <div class="overlay-content">
+                                    <h3 id="overlay-title">Cobrinha do Sorriso 🐍</h3>
+                                    <p id="overlay-instruction">Pressione a tecla **ESPAÇO** para iniciar!</p>
+                                    <span class="game-keys-hint" id="overlay-controls">Use as Setas do teclado</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- Client Modal (Add/Edit) - Simplified & Beautiful Redesign -->
+    <div class="modal-overlay" id="client-modal">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h3 id="modal-title"><i data-lucide="user-plus"></i> Novo Cliente</h3>
+                <button class="modal-close-btn" onclick="closeClientModal()">
+                    <i data-lucide="x"></i>
+                </button>
+            </div>
+            <form id="client-form" onsubmit="saveClient(event)">
+                <input type="hidden" id="client-id">
+                
+                <div class="modal-body">
+                    <!-- Client Name -->
+                    <div class="form-group">
+                        <label for="client-name">Nome do Cliente <span class="required">*</span></label>
+                        <div class="input-wrapper">
+                            <i data-lucide="user"></i>
+                            <input type="text" id="client-name" required placeholder="Digite o nome completo">
+                        </div>
+                    </div>
+
+                    <!-- Phone and CPF -->
+                    <div class="form-row">
+                        <div class="form-group flex-1">
+                            <label for="client-phone">Telefone (WhatsApp) <span class="required">*</span></label>
+                            <div class="input-wrapper">
+                                <i data-lucide="phone"></i>
+                                <input type="tel" id="client-phone" required placeholder="(00) 00000-0000">
+                            </div>
+                        </div>
+                        <div class="form-group flex-1">
+                            <label for="client-cpf">CPF <span class="optional">(Opcional)</span></label>
+                            <div class="input-wrapper">
+                                <i data-lucide="credit-card"></i>
+                                <input type="text" id="client-cpf" placeholder="000.000.000-00">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Procedure Type -->
+                    <div class="form-group">
+                        <label for="client-type">Procedimento / Consulta <span class="required">*</span></label>
+                        <div class="select-wrapper border-input">
+                            <i data-lucide="stethoscope"></i>
+                            <select id="client-type" required>
+                                <option value="" disabled selected>Escolha o tipo de consulta</option>
+                                <option value="Consulta Geral">Consulta Geral / Avaliação</option>
+                                <option value="Limpeza & Profilaxia">Limpeza & Profilaxia</option>
+                                <option value="Canal / Endodontia">Canal / Endodontia</option>
+                                <option value="Aparelho / Ortodontia">Aparelho / Ortodontia</option>
+                                <option value="Restauração">Restauração / Obturação</option>
+                                <option value="Extração / Cirurgia">Extração / Cirurgia</option>
+                                <option value="Implante / Prótese">Implante / Prótese</option>
+                                <option value="Clareamento Dental">Clareamento Dental</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Date and Time Fields -->
+                    <div class="form-row">
+                        <div class="form-group flex-1">
+                            <label for="client-date">Data <span class="required">*</span></label>
+                            <div class="input-wrapper custom-datetime-picker">
+                                <i data-lucide="calendar"></i>
+                                <input type="date" id="client-date" required>
+                            </div>
+                        </div>
+                        <div class="form-group flex-1">
+                            <label for="client-time">Hora <span class="required">*</span></label>
+                            <div class="input-wrapper custom-datetime-picker">
+                                <i data-lucide="clock"></i>
+                                <input type="time" id="client-time" required>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Client Status -->
+                    <div class="form-group">
+                        <label for="client-status">Status do Agendamento</label>
+                        <div class="select-wrapper border-input">
+                            <i data-lucide="toggle-left"></i>
+                            <select id="client-status">
+                                <option value="confirmed">Confirmado / Ativo</option>
+                                <option value="canceled">Cancelado</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" onclick="closeClientModal()">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">
+                        <i data-lucide="save"></i>
+                        <span>Confirmar Salvar</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Floating Actions Context Menu -->
+    <div id="context-menu" class="context-menu">
+        <div class="context-menu-header">
+            <h4 id="ctx-client-name">Nome do Cliente</h4>
+            <p id="ctx-client-info">Procedimento</p>
+        </div>
+        <ul class="context-menu-list">
+            <li onclick="triggerCtxWhatsapp()" class="ctx-wpp-item" id="ctx-wpp-li">
+                <i data-lucide="message-circle"></i>
+                <span>Enviar Lembrete WhatsApp</span>
+            </li>
+            <li onclick="triggerCtxEdit()">
+                <i data-lucide="pencil"></i>
+                <span>Editar Informações</span>
+            </li>
+            <li onclick="triggerCtxCancel()" id="ctx-cancel-li">
+                <i data-lucide="x-circle"></i>
+                <span>Cancelar Agendamento</span>
+            </li>
+            <li onclick="triggerCtxDelete()" class="ctx-delete-item">
+                <i data-lucide="trash-2"></i>
+                <span>Excluir do Sistema</span>
+            </li>
+        </ul>
+    </div>
+
+    <!-- Hidden Export Alert Notification (Toast) -->
+    <div id="toast" class="toast">
+        <i data-lucide="download" class="toast-icon"></i>
+        <div class="toast-content">
+            <span class="toast-title">Dados Exportados!</span>
+            <span class="toast-desc">O arquivo clientes_odonto.json foi baixado com sucesso.</span>
+        </div>
+    </div>
+
+    <!-- App Script -->
+    <script src="app.js"></script>
+</body>
+</html>
