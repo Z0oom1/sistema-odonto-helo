@@ -13,23 +13,23 @@ const CLINIC_NAME = 'Novo Sorriso';
 
 // Mensagens padrão de lembrete
 const DEFAULT_TOMORROW_MESSAGES = [
-  "Olá, [nome]! 😊 Aqui é da clínica *[clinica]*!\n\nPassando para lembrar que sua consulta de *[procedimento]* está marcada para *amanhã*, dia *[data]*, às *[hora]*. Faltam apenas *1 dia*!\n\nConfirma a presença? A gente está ansiosa para te ver! 🦷⭐",
-  "Oi, [nome]! ⭐ Tudo bem?\n\nSou da equipe *[clinica]* e vim te lembrar que amanhã, *[data]* às *[hora]*, temos sua consulta de *[procedimento]* agendada!\n\nNos vemos amanhã. Qualquer dúvida, pode chamar! 😄",
-  "Olá, [nome]! 🌸 Aqui é da *[clinica]*.\n\nSó um lembrete carinhoso: sua consulta (*[procedimento]*) é *amanhã*, dia *[data]*, às *[hora]*. Falta 1 dia!\n\nUm sorriso lindo te espera — até amanhã! 🦷💖"
+  "Olá, [nome]! Aqui é da clínica *[clinica]*!\n\nPassando para lembrar que sua consulta de *[procedimento]* está marcada para *amanhã*, dia *[data]*, às *[hora]*. Faltam apenas *1 dia*!\n\nConfirma a presença? A gente está ansiosa para te ver! ",
+  "Oi, [nome]! Tudo bem?\n\nSou da equipe *[clinica]* e vim te lembrar que amanhã, *[data]* às *[hora]*, temos sua consulta de *[procedimento]* agendada!\n\nNos vemos amanhã. Qualquer dúvida, pode chamar! ",
+  "Olá, [nome]! Aqui é da *[clinica]*.\n\nSó um lembrete carinhoso: sua consulta (*[procedimento]*) é *amanhã*, dia *[data]*, às *[hora]*. Falta 1 dia!\n\nUm sorriso lindo te espera — até amanhã! "
 ];
 
 const DEFAULT_TODAY_MESSAGES = [
-  "Olá, [nome]! 🦷⭐ Aqui é da clínica *[clinica]*!\n\nO grande dia chegou! Sua consulta de *[procedimento]* é *hoje*, dia *[data]*, às *[hora]*.\n\nEstamos te esperando com muito carinho! Não se esqueça! 😊💖",
-  "Oi, [nome]! 🌸 Bom dia/boa tarde!\n\nSou da equipe *[clinica]* e vim te lembrar que hoje, *[data]* às *[hora]*, temos sua consulta de *[procedimento]*!\n\nNos vemos em breve, vai ser ótimo! 🙌✨",
-  "[nome], hoje é o dia! 🎉\n\nSua consulta de *[procedimento]* na *[clinica]* é hoje, *[data]* às *[hora]*.\n\nTe esperamos com todo cuidado e carinho! 💕🦷"
+  "Olá, [nome]!  Aqui é da clínica *[clinica]*!\n\nO grande dia chegou! Sua consulta de *[procedimento]* é *hoje*, dia *[data]*, às *[hora]*.\n\nEstamos te esperando com muito carinho! Não se esqueça! ",
+  "Oi, [nome]!  Bom dia/boa tarde!\n\nSou da equipe *[clinica]* e vim te lembrar que hoje, *[data]* às *[hora]*, temos sua consulta de *[procedimento]*!\n\nNos vemos em breve, vai ser ótimo! ",
+  "[nome], hoje é o dia! 🎉\n\nSua consulta de *[procedimento]* na *[clinica]* é hoje, *[data]* às *[hora]*.\n\nTe esperamos com todo cuidado e carinho! "
 ];
 
 const MASCOT_MESSAGES = [
-  'Olá, Helo! Vamos cuidar de sorrisos brilhantes hoje? 🌸',
-  'Cada sorriso que você cuida brilha mais! 🦷✨',
-  'Você é incrível! Desejo um ótimo dia de trabalho! 💕',
-  'Novo Sorriso: espalhando alegria e dentes saudáveis! 😊',
-  'Dica: use o botão direito para gerenciar os clientes! ⭐'
+  'Oii, amorzinho, te amo muito sabia? 🌸',
+  'Que bonitinho você fazendo suas coizinhas de trabalhinho! 🦷✨',
+  'Você é incrível Amor! Desejo um ótimo dia de trabalho! 💕',
+  'Lembra de me mandar mensagem princesa! 😊',
+  'Te amo muito muito ⭐'
 ];
 
 // ─── Global State ──────────────────────────────────────────────────────────
@@ -63,6 +63,21 @@ function sortChronologically(clientArray) {
     const db = parseLocalDateTime(b.date, b.time);
     return da - db;
   });
+}
+function verificarProcedimentoOutros() {
+    const selectProcedimento = document.getElementById('client-type');
+    const containerOutro = document.getElementById('container-outro-procedimento');
+    const inputOutro = document.getElementById('outro-procedimento');
+
+    if (selectProcedimento.value === 'Outros') {
+        containerOutro.style.display = 'block';
+        inputOutro.required = true; // Torna o campo obrigatório se visível
+        inputOutro.focus();
+    } else {
+        containerOutro.style.display = 'none';
+        inputOutro.required = false;
+        inputOutro.value = ''; // Limpa o campo caso mude de ideia
+    }
 }
 
 function loadClients() {
@@ -636,7 +651,26 @@ function openEditModal(clientId) {
   document.getElementById('client-name').value = client.name;
   document.getElementById('client-phone').value = client.phone;
   document.getElementById('client-cpf').value = client.cpf || '';
-  document.getElementById('client-type').value = client.type;
+  
+  // --- INÍCIO DA PARTE ALTERADA ---
+  const selectType = document.getElementById('client-type');
+  const inputOutro = document.getElementById('outro-procedimento');
+  const containerOutro = document.getElementById('container-outro-procedimento');
+
+  // Tenta selecionar o procedimento no select
+  selectType.value = client.type;
+
+  // Se o valor não bate com nenhuma opção do select, significa que é um procedimento "Outros"
+  if (selectType.value === "" && client.type !== "") { 
+      selectType.value = "Outros";
+      containerOutro.style.display = 'block';
+      inputOutro.value = client.type;
+  } else {
+      containerOutro.style.display = 'none';
+      inputOutro.value = '';
+  }
+  // --- FIM DA PARTE ALTERADA ---
+
   document.getElementById('client-date').value = client.date;
   document.getElementById('client-time').value = client.time;
   document.getElementById('client-status').value = client.status;
@@ -654,10 +688,24 @@ function saveClient(event) {
   const name = document.getElementById('client-name').value.trim();
   const phone = document.getElementById('client-phone').value.trim();
   const cpf = document.getElementById('client-cpf').value.trim();
-  const type = document.getElementById('client-type').value;
+  
+  // Captura o valor inicial do select
+  let type = document.getElementById('client-type').value;
+  
+  // REGRA NOVA: Se for "Outros", captura o valor digitado no input de texto
+  if (type === 'Outros') {
+    type = document.getElementById('outro-procedimento').value.trim();
+  }
+
   const date = document.getElementById('client-date').value;
   const time = document.getElementById('client-time').value;
   const status = document.getElementById('client-status').value;
+
+  // Validação extra para garantir que o usuário digitou algo em "Outros"
+  if (!type) {
+    showToast('⚠ Erro', 'Por favor, especifique o procedimento.');
+    return;
+  }
 
   const appointmentDate = parseLocalDateTime(date, time);
   const now = new Date();
@@ -677,7 +725,7 @@ function saveClient(event) {
         name,
         phone,
         cpf,
-        type,
+        type, // Salva o procedimento (padrão ou o digitado em "Outros")
         date,
         time,
         status,
@@ -691,7 +739,7 @@ function saveClient(event) {
       name,
       phone,
       cpf,
-      type,
+      type, // Salva o procedimento (padrão ou o digitado em "Outros")
       date,
       time,
       status,

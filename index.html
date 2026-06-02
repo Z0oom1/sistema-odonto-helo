@@ -1,25 +1,30 @@
 <!DOCTYPE html>
 <html lang="pt-BR" data-theme="light">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sistema Odonto da Helo - Novo Sorriso</title>
-    
+
     <!-- SEO and Meta Tags -->
-    <meta name="description" content="Sistema minimalista de controle de clientes e lembretes para a clínica odontológica Novo Sorriso.">
+    <meta name="description"
+        content="Sistema minimalista de controle de clientes e lembretes para a clínica odontológica Novo Sorriso.">
     <meta name="author" content="Helo">
-    
+
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@300..700&family=Plus+Jakarta+Sans:wght@300..800&family=Quicksand:wght@300..700&display=swap" rel="stylesheet">
-    
+    <link
+        href="https://fonts.googleapis.com/css2?family=Fredoka:wght@300..700&family=Plus+Jakarta+Sans:wght@300..800&family=Quicksand:wght@300..700&display=swap"
+        rel="stylesheet">
+
     <!-- Lucide Icons -->
     <script src="https://unpkg.com/lucide@latest"></script>
-    
+
     <!-- Project Stylesheet -->
     <link rel="stylesheet" href="styles.css">
 </head>
+
 <body>
     <!-- Helo Sparkles Background Container -->
     <div id="sparkle-container" class="sparkle-container"></div>
@@ -43,7 +48,7 @@
 
     <!-- App Container -->
     <div class="app-layout">
-        
+
         <!-- Sidebar / Navigation -->
         <aside class="sidebar">
             <div class="sidebar-brand">
@@ -55,7 +60,7 @@
                     <span>Odonto da Helo</span>
                 </div>
             </div>
-            
+
             <nav class="sidebar-nav">
                 <ul>
                     <li class="active" id="nav-dashboard">
@@ -117,7 +122,8 @@
             <div class="theme-selector-container">
                 <span class="selector-title">Tema do Sistema</span>
                 <div class="theme-picker">
-                    <button class="theme-btn active" id="btn-theme-light" onclick="setTheme('light')" title="Modo Claro">
+                    <button class="theme-btn active" id="btn-theme-light" onclick="setTheme('light')"
+                        title="Modo Claro">
                         <i data-lucide="sun"></i>
                         <span>Claro</span>
                     </button>
@@ -173,34 +179,40 @@
                 <!-- Helper Banner -->
                 <div class="helper-banner">
                     <i data-lucide="info"></i>
-                    <span>Dica: Clique com o **botão direito** (ou toque longo no celular) em qualquer cliente para abrir o menu de ações!</span>
+                    <span>Dica: Clique com o **botão direito** (ou toque longo no celular) em qualquer cliente para
+                        abrir o menu de ações!</span>
                 </div>
 
                 <!-- Chronological Client List (Strict Order Ascending) -->
                 <div class="panel-section">
                     <div class="section-header">
-                        <h3><i data-lucide="calendar" class="icon-primary"></i> Próximos Atendimentos (Ordem Cronológica)</h3>
-                        <p class="section-desc">Clientes organizados por ordem crescente de data e hora de agendamento.</p>
+                        <h3><i data-lucide="calendar" class="icon-primary"></i> Próximos Atendimentos (Ordem
+                            Cronológica)</h3>
+                        <p class="section-desc">Clientes organizados por ordem crescente de data e hora de agendamento.
+                        </p>
                     </div>
-                    
-                        <div class="client-grid" id="upcoming-grid"></div>
+
+                    <div class="client-grid" id="upcoming-grid"></div>
                 </div>
             </section>
 
             <!-- Today Tab -->
             <section id="tab-today" class="app-tab">
                 <div class="panel-section">
-                    <div class="section-header-row" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem;">
+                    <div class="section-header-row"
+                        style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem;">
                         <div>
-                            <h3 style="display: flex; align-items: center; gap: 0.5rem;"><i data-lucide="calendar-check" class="icon-primary"></i> Agenda de Hoje</h3>
-                            <p class="section-desc">Gerencie a linha do tempo do dia de hoje e encaixe consultas nos horários vagos.</p>
+                            <h3 style="display: flex; align-items: center; gap: 0.5rem;"><i data-lucide="calendar-check"
+                                    class="icon-primary"></i> Agenda de Hoje</h3>
+                            <p class="section-desc">Gerencie a linha do tempo do dia de hoje e encaixe consultas nos
+                                horários vagos.</p>
                         </div>
                         <button class="btn btn-primary" onclick="openClientModalToday()">
                             <i data-lucide="plus"></i>
                             <span>Encaixar Hoje</span>
                         </button>
                     </div>
-                    
+
                     <div class="today-timeline" id="today-timeline-container">
                         <!-- Will be populated by JS -->
                     </div>
@@ -219,7 +231,8 @@
                     <div class="control-bar">
                         <div class="search-input-wrapper">
                             <i data-lucide="search"></i>
-                            <input type="text" id="client-search" placeholder="Buscar por nome, telefone ou CPF..." oninput="filterClients()">
+                            <input type="text" id="client-search" placeholder="Buscar por nome, telefone ou CPF..."
+                                oninput="filterClients()">
                         </div>
                         <div class="filters-wrapper">
                             <div class="select-wrapper">
@@ -251,8 +264,10 @@
             <section id="tab-templates" class="app-tab">
                 <div class="panel-section">
                     <div class="section-header">
-                        <h3><i data-lucide="message-square-text" class="icon-primary"></i> Personalização de Lembretes</h3>
-                        <p class="section-desc">Personalize as mensagens automatizadas de WhatsApp. Use as seguintes tags para inserir dados automaticamente:</p>
+                        <h3><i data-lucide="message-square-text" class="icon-primary"></i> Personalização de Lembretes
+                        </h3>
+                        <p class="section-desc">Personalize as mensagens automatizadas de WhatsApp. Use as seguintes
+                            tags para inserir dados automaticamente:</p>
                         <div class="tags-helper">
                             <span class="tag-badge"><code>[nome]</code> Nome do Paciente</span>
                             <span class="tag-badge"><code>[procedimento]</code> Consulta/Procedimento</span>
@@ -266,62 +281,75 @@
                         <!-- Lembretes de Amanhã (1 dia antes) -->
                         <div class="template-group-box">
                             <h4 class="group-box-title">📅 Lembrete: 1 Dia de Antecedência (Amanhã)</h4>
-                            <p class="group-box-desc">O sistema selecionará aleatoriamente uma das 3 versões abaixo para manter as mensagens dinâmicas e naturais.</p>
-                            
+                            <p class="group-box-desc">O sistema selecionará aleatoriamente uma das 3 versões abaixo para
+                                manter as mensagens dinâmicas e naturais.</p>
+
                             <div class="form-group">
                                 <div class="template-header-row">
                                     <label for="template-tomorrow-0">Versão 1 (Principal)</label>
-                                    <button type="button" class="btn-text-link" onclick="resetSingleTemplate('tomorrow', 0)">Restaurar Padrão</button>
+                                    <button type="button" class="btn-text-link"
+                                        onclick="resetSingleTemplate('tomorrow', 0)">Restaurar Padrão</button>
                                 </div>
-                                <textarea id="template-tomorrow-0" rows="3" class="template-textarea" required></textarea>
+                                <textarea id="template-tomorrow-0" rows="3" class="template-textarea"
+                                    required></textarea>
                             </div>
                             <div class="form-group">
                                 <div class="template-header-row">
                                     <label for="template-tomorrow-1">Versão 2 (Amigável)</label>
-                                    <button type="button" class="btn-text-link" onclick="resetSingleTemplate('tomorrow', 1)">Restaurar Padrão</button>
+                                    <button type="button" class="btn-text-link"
+                                        onclick="resetSingleTemplate('tomorrow', 1)">Restaurar Padrão</button>
                                 </div>
-                                <textarea id="template-tomorrow-1" rows="3" class="template-textarea" required></textarea>
+                                <textarea id="template-tomorrow-1" rows="3" class="template-textarea"
+                                    required></textarea>
                             </div>
                             <div class="form-group">
                                 <div class="template-header-row">
                                     <label for="template-tomorrow-2">Versão 3 (Carinhosa)</label>
-                                    <button type="button" class="btn-text-link" onclick="resetSingleTemplate('tomorrow', 2)">Restaurar Padrão</button>
+                                    <button type="button" class="btn-text-link"
+                                        onclick="resetSingleTemplate('tomorrow', 2)">Restaurar Padrão</button>
                                 </div>
-                                <textarea id="template-tomorrow-2" rows="3" class="template-textarea" required></textarea>
+                                <textarea id="template-tomorrow-2" rows="3" class="template-textarea"
+                                    required></textarea>
                             </div>
                         </div>
 
                         <!-- Lembretes do Dia da Consulta (Hoje) -->
                         <div class="template-group-box">
                             <h4 class="group-box-title">⚡ Lembrete: No Dia da Consulta (Hoje)</h4>
-                            <p class="group-box-desc">Mensagens enviadas no dia do atendimento. Também rotaciona entre as 3 opções abaixo.</p>
-                            
+                            <p class="group-box-desc">Mensagens enviadas no dia do atendimento. Também rotaciona entre
+                                as 3 opções abaixo.</p>
+
                             <div class="form-group">
                                 <div class="template-header-row">
                                     <label for="template-today-0">Versão 1 (Principal)</label>
-                                    <button type="button" class="btn-text-link" onclick="resetSingleTemplate('today', 0)">Restaurar Padrão</button>
+                                    <button type="button" class="btn-text-link"
+                                        onclick="resetSingleTemplate('today', 0)">Restaurar Padrão</button>
                                 </div>
                                 <textarea id="template-today-0" rows="3" class="template-textarea" required></textarea>
                             </div>
                             <div class="form-group">
                                 <div class="template-header-row">
                                     <label for="template-today-1">Versão 2 (Amigável)</label>
-                                    <button type="button" class="btn-text-link" onclick="resetSingleTemplate('today', 1)">Restaurar Padrão</button>
+                                    <button type="button" class="btn-text-link"
+                                        onclick="resetSingleTemplate('today', 1)">Restaurar Padrão</button>
                                 </div>
                                 <textarea id="template-today-1" rows="3" class="template-textarea" required></textarea>
                             </div>
                             <div class="form-group">
                                 <div class="template-header-row">
                                     <label for="template-today-2">Versão 3 (Divertida)</label>
-                                    <button type="button" class="btn-text-link" onclick="resetSingleTemplate('today', 2)">Restaurar Padrão</button>
+                                    <button type="button" class="btn-text-link"
+                                        onclick="resetSingleTemplate('today', 2)">Restaurar Padrão</button>
                                 </div>
                                 <textarea id="template-today-2" rows="3" class="template-textarea" required></textarea>
                             </div>
                         </div>
 
                         <div class="template-footer-actions">
-                            <button type="button" class="btn btn-secondary" onclick="resetAllTemplates()">Restaurar Todos os Padrões</button>
-                            <button type="submit" class="btn btn-primary"><i data-lucide="save"></i> Salvar Alterações</button>
+                            <button type="button" class="btn btn-secondary" onclick="resetAllTemplates()">Restaurar
+                                Todos os Padrões</button>
+                            <button type="submit" class="btn btn-primary"><i data-lucide="save"></i> Salvar
+                                Alterações</button>
                         </div>
                     </form>
                 </div>
@@ -332,7 +360,8 @@
                 <div class="panel-section games-panel">
                     <div class="section-header">
                         <h3><i data-lucide="gamepad-2" class="icon-primary"></i> Estação de Joguinhos da Helo 🌸🎮</h3>
-                        <p class="section-desc">Divirta-se jogando mini-games clássicos infinitos estilizados no tema da Helo!</p>
+                        <p class="section-desc">Divirta-se jogando mini-games clássicos infinitos estilizados no tema da
+                            Helo!</p>
                     </div>
 
                     <!-- Mini Games Selector Navigation -->
@@ -360,7 +389,7 @@
                             <div>Recorde: <span id="game-highscore" class="high-score-val">0</span> ⭐</div>
                             <div>Pontuação: <span id="game-currentscore" class="current-score-val">0</span> ⭐</div>
                         </div>
-                        
+
                         <div class="canvas-container">
                             <canvas id="game-canvas" width="600" height="400"></canvas>
                             <!-- Start / GameOver overlay screen -->
@@ -389,7 +418,7 @@
             </div>
             <form id="client-form" onsubmit="saveClient(event)">
                 <input type="hidden" id="client-id">
-                
+
                 <div class="modal-body">
                     <!-- Client Name -->
                     <div class="form-group">
@@ -423,7 +452,8 @@
                         <label for="client-type">Procedimento / Consulta <span class="required">*</span></label>
                         <div class="select-wrapper border-input">
                             <i data-lucide="stethoscope"></i>
-                            <select id="client-type" required>
+                            <!-- Adicionado o onchange apontando para o id correto 'client-type' -->
+                            <select id="client-type" required onchange="verificarProcedimentoOutros()">
                                 <option value="" disabled selected>Escolha o tipo de consulta</option>
                                 <option value="Consulta Geral">Consulta Geral / Avaliação</option>
                                 <option value="Limpeza & Profilaxia">Limpeza & Profilaxia</option>
@@ -433,10 +463,19 @@
                                 <option value="Extração / Cirurgia">Extração / Cirurgia</option>
                                 <option value="Implante / Prótese">Implante / Prótese</option>
                                 <option value="Clareamento Dental">Clareamento Dental</option>
+                                <option value="Outros">Outros</option>
                             </select>
                         </div>
                     </div>
 
+                    <!-- Campo oculto corrigido estruturalmente para o padrão profissional -->
+                    <div class="form-group" id="container-outro-procedimento" style="display: none; margin-top: 10px;">
+                        <label for="outro-procedimento">Informe o nome do procedimento:</label>
+                        <div class="input-wrapper">
+                            <i data-lucide="edit-3"></i>
+                            <input type="text" id="outro-procedimento" placeholder="Ex: Clareamento Caseiro">
+                        </div>
+                    </div>
                     <!-- Date and Time Fields -->
                     <div class="form-row">
                         <div class="form-group flex-1">
@@ -517,5 +556,5 @@
     <!-- App Script -->
     <script src="app.js"></script>
 </body>
+
 </html>
- 
