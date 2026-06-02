@@ -14,14 +14,14 @@ const CLINIC_NAME   = 'Novo Sorriso';
 // Mensagens padrão de lembrete
 const DEFAULT_TOMORROW_MESSAGES = [
   "🌟 *[saudacao], [nome]!* Seja muito bem-vindo(a) à *Clínica Odontológica [clinica]* 🦷✨\n\nPassando para te lembrar, com carinho, da sua consulta de *[procedimento]*:\n\n🗓️ *AMANHÃ*\n⏰ *ÀS [hora]*\n\n💙 Nossa equipe já está preparada para te receber com todo cuidado, conforto e atenção para que você tenha a melhor experiência possível!\n\n📍 *Clínica [clinica]*\n🦷 Cuidando do seu sorriso com carinho e dedicação\n\nSe houver qualquer dúvida ou imprevisto, estamos à disposição por aqui 💬\n\n✨ *Te esperamos! Até logo!* 😄",
-  "Olá, *[nome]*! 🦷✨\n\nLembrete especial da sua consulta de *[procedimento]* marcada para amanhã às *[hora]* na *[clinica]*.\n\nConfirmamos sua presença? 🗓️",
-  "Oi, *[nome]*! 🌸\n\nSua consulta de *[procedimento]* na *[clinica]* é amanhã, às *[hora]*.\n\nEstamos ansiosos para te ver e cuidar do seu sorriso! Até amanhã! ⭐"
+  "🌟 *[saudacao], [nome]!* Seja muito bem-vindo(a) à *Clínica Odontológica [clinica]* 🦷✨\n\nPassando para te lembrar, com carinho, da sua consulta de *[procedimento]*:\n\n🗓️ *AMANHÃ*\n⏰ *ÀS [hora]*\n\n💙 Nossa equipe já está preparada para te receber com todo cuidado, conforto e atenção para que você tenha a melhor experiência possível!\n\n📍 *Clínica [clinica]*\n🦷 Cuidando do seu sorriso com carinho e dedicação\n\nSe houver qualquer dúvida ou imprevisto, estamos à disposição por aqui 💬\n\n✨ *Te esperamos! Até logo!* 😄",
+  "🌟 *[saudacao], [nome]!* Seja muito bem-vindo(a) à *Clínica Odontológica [clinica]* 🦷✨\n\nPassando para te lembrar, com carinho, da sua consulta de *[procedimento]*:\n\n🗓️ *AMANHÃ*\n⏰ *ÀS [hora]*\n\n💙 Nossa equipe já está preparada para te receber com todo cuidado, conforto e atenção para que você tenha a melhor experiência possível!\n\n📍 *Clínica [clinica]*\n🦷 Cuidando do seu sorriso com carinho e dedicação\n\nSe houver qualquer dúvida ou imprevisto, estamos à disposição por aqui 💬\n\n✨ *Te esperamos! Até logo!* 😄"
 ];
 
 const DEFAULT_TODAY_MESSAGES = [
   "🌟 *[saudacao], [nome]!* Seja muito bem-vindo(a) à *Clínica Odontológica [clinica]* 🦷✨\n\nPassando para te lembrar, com carinho, da sua consulta de *[procedimento]*:\n\n🗓️ *HOJE*\n⏰ *ÀS [hora]*\n\n💙 Nossa equipe já está preparada para te receber com todo cuidado, conforto e atenção para que você tenha a melhor experiência possível!\n\n📍 *Clínica [clinica]*\n🦷 Cuidando do seu sorriso com carinho e dedicação\n\nSe houver qualquer dúvida ou imprevisto, estamos à disposição por aqui 💬\n\n✨ *Te esperamos! Até logo!* 😄",
-  "Oi, *[nome]*! 🦷\n\nO grande dia chegou! Sua consulta de *[procedimento]* é hoje às *[hora]* na *[clinica]*.\n\nEstamos te esperando! 😊✨",
-  "Olá, *[nome]*! 🌸\n\nLembrete da sua consulta de *[procedimento]* hoje, às *[hora]*.\n\nSua saúde bucal em primeiro lugar! Até logo! ⭐"
+  "🌟 *[saudacao], [nome]!* Seja muito bem-vindo(a) à *Clínica Odontológica [clinica]* 🦷✨\n\nPassando para te lembrar, com carinho, da sua consulta de *[procedimento]*:\n\n🗓️ *HOJE*\n⏰ *ÀS [hora]*\n\n💙 Nossa equipe já está preparada para te receber com todo cuidado, conforto e atenção para que você tenha a melhor experiência possível!\n\n📍 *Clínica [clinica]*\n🦷 Cuidando do seu sorriso com carinho e dedicação\n\nSe houver qualquer dúvida ou imprevisto, estamos à disposição por aqui 💬\n\n✨ *Te esperamos! Até logo!* 😄",
+  "🌟 *[saudacao], [nome]!* Seja muito bem-vindo(a) à *Clínica Odontológica [clinica]* 🦷✨\n\nPassando para te lembrar, com carinho, da sua consulta de *[procedimento]*:\n\n🗓️ *HOJE*\n⏰ *ÀS [hora]*\n\n💙 Nossa equipe já está preparada para te receber com todo cuidado, conforto e atenção para que você tenha a melhor experiência possível!\n\n📍 *Clínica [clinica]*\n🦷 Cuidando do seu sorriso com carinho e dedicação\n\nSe houver qualquer dúvida ou imprevisto, estamos à disposição por aqui 💬\n\n✨ *Te esperamos! Até logo!* 😄"
 ];
 
 const MASCOT_MESSAGES = [
@@ -84,6 +84,13 @@ function loadTemplates() {
   const raw = localStorage.getItem(TEMPLATE_KEY);
   if (raw) {
     activeTemplates = JSON.parse(raw);
+    
+    // Forçar atualização se o template antigo ainda estiver no localStorage
+    if (!activeTemplates.today[0].includes('🌟')) {
+      activeTemplates.tomorrow  = [...DEFAULT_TOMORROW_MESSAGES];
+      activeTemplates.today     = [...DEFAULT_TODAY_MESSAGES];
+      saveTemplatesToStorage();
+    }
   } else {
     activeTemplates.tomorrow  = [...DEFAULT_TOMORROW_MESSAGES];
     activeTemplates.today     = [...DEFAULT_TODAY_MESSAGES];
@@ -182,10 +189,11 @@ function buildWhatsAppLink(client) {
   const phone = cleanPhone(client.phone);
   const waPhone = phone.startsWith('55') ? phone : `55${phone}`;
   
-  // Usamos encodeURIComponent mas garantimos que a string de entrada está limpa.
-  // O WhatsApp Web/Desktop às vezes tem problemas com espaços codificados como %20 em excesso,
-  // mas o encodeURIComponent é o padrão correto.
-  return `https://wa.me/${waPhone}?text=${encodeURIComponent(cleanedMessage)}`;
+  // Usamos uma técnica mais robusta para emojis: substituir espaços por %20 manualmente
+  // e deixar o navegador lidar com os caracteres UTF-8 se possível, ou usar encodeURIComponent padrão.
+  const encodedText = encodeURIComponent(cleanedMessage);
+  
+  return `https://wa.me/${waPhone}?text=${encodedText}`;
 }
 
 // ─── Formatting helpers ──────────────────────────────────────────────────────
@@ -524,6 +532,10 @@ function openClientModal() {
   document.getElementById('client-form').reset();
   document.getElementById('client-id').value = '';
   
+  // Reset custom type field
+  document.getElementById('custom-type-group').style.display = 'none';
+  document.getElementById('client-custom-type').required = false;
+  
   const today = new Date();
   const yyyy  = today.getFullYear();
   const mm    = String(today.getMonth() + 1).padStart(2, '0');
@@ -550,7 +562,25 @@ function openEditModal(clientId) {
   document.getElementById('client-name').value    = client.name;
   document.getElementById('client-phone').value   = client.phone;
   document.getElementById('client-cpf').value     = client.cpf   || '';
-  document.getElementById('client-type').value    = client.type;
+  
+  // Lógica para carregar tipo de procedimento
+  const standardTypes = [
+    "Consulta Geral", "Limpeza & Profilaxia", "Canal / Endodontia", 
+    "Aparelho / Ortodontia", "Restauração", "Extração / Cirurgia", 
+    "Implante / Prótese", "Clareamento Dental"
+  ];
+  
+  if (standardTypes.includes(client.type)) {
+    document.getElementById('client-type').value = client.type;
+    document.getElementById('custom-type-group').style.display = 'none';
+    document.getElementById('client-custom-type').required = false;
+  } else {
+    document.getElementById('client-type').value = 'Outros';
+    document.getElementById('custom-type-group').style.display = 'block';
+    document.getElementById('client-custom-type').value = client.type;
+    document.getElementById('client-custom-type').required = true;
+  }
+  
   document.getElementById('client-date').value    = client.date;
   document.getElementById('client-time').value    = client.time;
   document.getElementById('client-status').value  = client.status;
@@ -568,10 +598,14 @@ function saveClient(event) {
   const name   = document.getElementById('client-name').value.trim();
   const phone  = document.getElementById('client-phone').value.trim();
   const cpf    = document.getElementById('client-cpf').value.trim();
-  const type   = document.getElementById('client-type').value;
+  let   type   = document.getElementById('client-type').value;
   const date   = document.getElementById('client-date').value;
   const time   = document.getElementById('client-time').value;
   const status = document.getElementById('client-status').value;
+
+  if (type === 'Outros') {
+    type = document.getElementById('client-custom-type').value.trim() || 'Outros';
+  }
 
   if (id) {
     const idx = clients.findIndex(c => c.id === id);
@@ -845,6 +879,24 @@ document.getElementById('client-modal').addEventListener('click', function(e) {
 
 // Phone & CPF Input Masks
 function applyInputMasks() {
+  // Listener para o campo "Outros"
+  const typeSelect = document.getElementById('client-type');
+  const customGroup = document.getElementById('custom-type-group');
+  const customInput = document.getElementById('client-custom-type');
+  
+  if (typeSelect) {
+    typeSelect.addEventListener('change', function() {
+      if (this.value === 'Outros') {
+        customGroup.style.display = 'block';
+        customInput.required = true;
+        customInput.focus();
+      } else {
+        customGroup.style.display = 'none';
+        customInput.required = false;
+      }
+    });
+  }
+
   const phoneInput = document.getElementById('client-phone');
   if (phoneInput) {
     phoneInput.addEventListener('input', function() {
