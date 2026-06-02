@@ -5,23 +5,23 @@
 
 // ─── Constants & Default Templates ─────────────────────────────────────────
 
-const STORAGE_KEY   = 'odonto_helo_clients';
-const TEMPLATE_KEY  = 'odonto_helo_templates';
-const THEME_KEY     = 'odonto_helo_theme';
+const STORAGE_KEY = 'odonto_helo_clients';
+const TEMPLATE_KEY = 'odonto_helo_templates';
+const THEME_KEY = 'odonto_helo_theme';
 const GAME_SCORE_KEY = 'odonto_helo_game_scores';
-const CLINIC_NAME   = 'Novo Sorriso';
+const CLINIC_NAME = 'Novo Sorriso';
 
 // Mensagens padrão de lembrete
 const DEFAULT_TOMORROW_MESSAGES = [
-  "\uD83C\uDF1F *[saudacao], [nome]!* Seja muito bem-vindo(a) \u00E0 *Cl\u00EDnica Odontol\u00F3gica [clinica]* \uD83E\uDDB7\u2728\n\nPassando para te lembrar, com carinho, da sua consulta de *[procedimento]*:\n\n\uD83D\uDDD3\uFE0F *AMANH\u00C3*\n\u23F0 *\u00C0S [hora]*\n\n\uD83D\uDC99 Nossa equipe j\u00E1 est\u00E1 preparada para te receber com todo cuidado, conforto e aten\u00E7\u00E3o para que voc\u00EA tenha a melhor experi\u00EAncia poss\u00EDvel!\n\n\uD83D\uDCCD *Cl\u00EDnica [clinica]*\n\uD83E\uDDB7 Cuidando do seu sorriso com carinho e dedica\u00E7\u00E3o\n\nSe houver qualquer d\u00FAvida ou imprevisto, estamos \u00E0 disposi\u00E7\u00E3o por aqui \uD83D\uDCAC\n\n\u2728 *Te esperamos! At\u00E9 logo!* \uD83D\uDE04",
-  "\uD83C\uDF1F *[saudacao], [nome]!* Seja muito bem-vindo(a) \u00E0 *Cl\u00EDnica Odontol\u00F3gica [clinica]* \uD83E\uDDB7\u2728\n\nPassando para te lembrar, com carinho, da sua consulta de *[procedimento]*:\n\n\uD83D\uDDD3\uFE0F *AMANH\u00C3*\n\u23F0 *\u00C0S [hora]*\n\n\uD83D\uDC99 Nossa equipe j\u00E1 est\u00E1 preparada para te receber com todo cuidado, conforto e aten\u00E7\u00E3o para que voc\u00EA tenha a melhor experi\u00EAncia poss\u00EDvel!\n\n\uD83D\uDCCD *Cl\u00EDnica [clinica]*\n\uD83E\uDDB7 Cuidando do seu sorriso com carinho e dedica\u00E7\u00E3o\n\nSe houver qualquer d\u00FAvida ou imprevisto, estamos \u00E0 disposi\u00E7\u00E3o por aqui \uD83D\uDCAC\n\n\u2728 *Te esperamos! At\u00E9 logo!* \uD83D\uDE04",
-  "\uD83C\uDF1F *[saudacao], [nome]!* Seja muito bem-vindo(a) \u00E0 *Cl\u00EDnica Odontol\u00F3gica [clinica]* \uD83E\uDDB7\u2728\n\nPassando para te lembrar, com carinho, da sua consulta de *[procedimento]*:\n\n\uD83D\uDDD3\uFE0F *AMANH\u00C3*\n\u23F0 *\u00C0S [hora]*\n\n\uD83D\uDC99 Nossa equipe j\u00E1 est\u00E1 preparada para te receber com todo cuidado, conforto e aten\u00E7\u00E3o para que voc\u00EA tenha a melhor experi\u00EAncia poss\u00EDvel!\n\n\uD83D\uDCCD *Cl\u00EDnica [clinica]*\n\uD83E\uDDB7 Cuidando do seu sorriso com carinho e dedica\u00E7\u00E3o\n\nSe houver qualquer d\u00FAvida ou imprevisto, estamos \u00E0 disposi\u00E7\u00E3o por aqui \uD83D\uDCAC\n\n\u2728 *Te esperamos! At\u00E9 logo!* \uD83D\uDE04"
+  "Olá, [nome]! 😊 Aqui é da clínica *[clinica]*!\n\nPassando para lembrar que sua consulta de *[procedimento]* está marcada para *amanhã*, dia *[data]*, às *[hora]*. Faltam apenas *1 dia*!\n\nConfirma a presença? A gente está ansiosa para te ver! 🦷⭐",
+  "Oi, [nome]! ⭐ Tudo bem?\n\nSou da equipe *[clinica]* e vim te lembrar que amanhã, *[data]* às *[hora]*, temos sua consulta de *[procedimento]* agendada!\n\nNos vemos amanhã. Qualquer dúvida, pode chamar! 😄",
+  "Olá, [nome]! 🌸 Aqui é da *[clinica]*.\n\nSó um lembrete carinhoso: sua consulta (*[procedimento]*) é *amanhã*, dia *[data]*, às *[hora]*. Falta 1 dia!\n\nUm sorriso lindo te espera — até amanhã! 🦷💖"
 ];
 
 const DEFAULT_TODAY_MESSAGES = [
-  "\uD83C\uDF1F *[saudacao], [nome]!* Seja muito bem-vindo(a) \u00E0 *Cl\u00EDnica Odontol\u00F3gica [clinica]* \uD83E\uDDB7\u2728\n\nPassando para te lembrar, com carinho, da sua consulta de *[procedimento]*:\n\n\uD83D\uDDD3\uFE0F *HOJE*\n\u23F0 *\u00C0S [hora]*\n\n\uD83D\uDC99 Nossa equipe j\u00E1 est\u00E1 preparada para te receber com todo cuidado, conforto e aten\u00E7\u00E3o para que voc\u00EA tenha a melhor experi\u00EAncia poss\u00EDvel!\n\n\uD83D\uDCCD *Cl\u00EDnica [clinica]*\n\uD83E\uDDB7 Cuidando do seu sorriso com carinho e dedica\u00E7\u00E3o\n\nSe houver qualquer d\u00FAvida ou imprevisto, estamos \u00E0 disposi\u00E7\u00E3o por aqui \uD83D\uDCAC\n\n\u2728 *Te esperamos! At\u00E9 logo!* \uD83D\uDE04",
-  "\uD83C\uDF1F *[saudacao], [nome]!* Seja muito bem-vindo(a) \u00E0 *Cl\u00EDnica Odontol\u00F3gica [clinica]* \uD83E\uDDB7\u2728\n\nPassando para te lembrar, com carinho, da sua consulta de *[procedimento]*:\n\n\uD83D\uDDD3\uFE0F *HOJE*\n\u23F0 *\u00C0S [hora]*\n\n\uD83D\uDC99 Nossa equipe j\u00E1 est\u00E1 preparada para te receber com todo cuidado, conforto e aten\u00E7\u00E3o para que voc\u00EA tenha a melhor experi\u00EAncia poss\u00EDvel!\n\n\uD83D\uDCCD *Cl\u00EDnica [clinica]*\n\uD83E\uDDB7 Cuidando do seu sorriso com carinho e dedica\u00E7\u00E3o\n\nSe houver qualquer d\u00FAvida ou imprevisto, estamos \u00E0 disposi\u00E7\u00E3o por aqui \uD83D\uDCAC\n\n\u2728 *Te esperamos! At\u00E9 logo!* \uD83D\uDE04",
-  "\uD83C\uDF1F *[saudacao], [nome]!* Seja muito bem-vindo(a) \u00E0 *Cl\u00EDnica Odontol\u00F3gica [clinica]* \uD83E\uDDB7\u2728\n\nPassando para te lembrar, com carinho, da sua consulta de *[procedimento]*:\n\n\uD83D\uDDD3\uFE0F *HOJE*\n\u23F0 *\u00C0S [hora]*\n\n\uD83D\uDC99 Nossa equipe j\u00E1 est\u00E1 preparada para te receber com todo cuidado, conforto e aten\u00E7\u00E3o para que voc\u00EA tenha a melhor experi\u00EAncia poss\u00EDvel!\n\n\uD83D\uDCCD *Cl\u00EDnica [clinica]*\n\uD83E\uDDB7 Cuidando do seu sorriso com carinho e dedica\u00E7\u00E3o\n\nSe houver qualquer d\u00FAvida ou imprevisto, estamos \u00E0 disposi\u00E7\u00E3o por aqui \uD83D\uDCAC\n\n\u2728 *Te esperamos! At\u00E9 logo!* \uD83D\uDE04"
+  "Olá, [nome]! 🦷⭐ Aqui é da clínica *[clinica]*!\n\nO grande dia chegou! Sua consulta de *[procedimento]* é *hoje*, dia *[data]*, às *[hora]*.\n\nEstamos te esperando com muito carinho! Não se esqueça! 😊💖",
+  "Oi, [nome]! 🌸 Bom dia/boa tarde!\n\nSou da equipe *[clinica]* e vim te lembrar que hoje, *[data]* às *[hora]*, temos sua consulta de *[procedimento]*!\n\nNos vemos em breve, vai ser ótimo! 🙌✨",
+  "[nome], hoje é o dia! 🎉\n\nSua consulta de *[procedimento]* na *[clinica]* é hoje, *[data]* às *[hora]*.\n\nTe esperamos com todo cuidado e carinho! 💕🦷"
 ];
 
 const MASCOT_MESSAGES = [
@@ -54,8 +54,7 @@ function saveClients() {
 
 function cleanStringForWhatsapp(str) {
   if (!str) return '';
-  // Remove apenas caracteres de controle que realmente quebram a URL, preservando emojis e quebras de linha
-  return str.normalize('NFC');
+  return str.replace(/[\uFE00-\uFE0F]/g, '');
 }
 
 function sortChronologically(clientArray) {
@@ -72,8 +71,96 @@ function loadClients() {
     clients = JSON.parse(raw);
     clients = sortChronologically(clients);
   } else {
-    // Inicia o sistema sem clientes predefinidos
-    clients = [];
+    const today = new Date();
+    const formatDateStr = (d) => {
+      const yyyy = d.getFullYear();
+      const mm = String(d.getMonth() + 1).padStart(2, '0');
+      const dd = String(d.getDate()).padStart(2, '0');
+      return `${yyyy}-${mm}-${dd}`;
+    };
+
+    const todayStr = formatDateStr(today);
+
+    const tomorrow = new Date();
+    tomorrow.setDate(today.getDate() + 1);
+    const tomorrowStr = formatDateStr(tomorrow);
+
+    const dayAfterTomorrow = new Date();
+    dayAfterTomorrow.setDate(today.getDate() + 2);
+    const dayAfterTomorrowStr = formatDateStr(dayAfterTomorrow);
+
+    const nextWeek = new Date();
+    nextWeek.setDate(today.getDate() + 6);
+    const nextWeekStr = formatDateStr(nextWeek);
+
+    clients = [
+      {
+        id: 'mock-1',
+        name: 'Mariana Santos Silva',
+        phone: '11988887777',
+        cpf: '123.456.789-00',
+        type: 'Limpeza & Profilaxia',
+        date: todayStr,
+        time: '14:30',
+        status: 'confirmed',
+        notifiedTomorrow: true,
+        notifiedToday: false,
+        createdAt: new Date().toISOString()
+      },
+      {
+        id: 'mock-2',
+        name: 'Enzo Rodrigues Souza',
+        phone: '21977776666',
+        cpf: '987.654.321-11',
+        type: 'Aparelho / Ortodontia',
+        date: tomorrowStr,
+        time: '09:00',
+        status: 'confirmed',
+        notifiedTomorrow: false,
+        notifiedToday: false,
+        createdAt: new Date().toISOString()
+      },
+      {
+        id: 'mock-3',
+        name: 'Clara Costa Lima',
+        phone: '19999998888',
+        cpf: '',
+        type: 'Clareamento Dental',
+        date: dayAfterTomorrowStr,
+        time: '16:00',
+        status: 'confirmed',
+        notifiedTomorrow: false,
+        notifiedToday: false,
+        createdAt: new Date().toISOString()
+      },
+      {
+        id: 'mock-4',
+        name: 'João Pedro Ramos',
+        phone: '11966665555',
+        cpf: '456.789.123-22',
+        type: 'Canal / Endodontia',
+        date: nextWeekStr,
+        time: '10:30',
+        status: 'confirmed',
+        notifiedTomorrow: false,
+        notifiedToday: false,
+        createdAt: new Date().toISOString()
+      },
+      {
+        id: 'mock-5',
+        name: 'Ana Beatriz Ramos',
+        phone: '11955554444',
+        cpf: '321.654.987-33',
+        type: 'Restauração',
+        date: todayStr,
+        time: '11:00',
+        status: 'canceled',
+        notifiedTomorrow: false,
+        notifiedToday: false,
+        createdAt: new Date().toISOString()
+      }
+    ];
+    clients = sortChronologically(clients);
     saveClients();
   }
 }
@@ -84,16 +171,9 @@ function loadTemplates() {
   const raw = localStorage.getItem(TEMPLATE_KEY);
   if (raw) {
     activeTemplates = JSON.parse(raw);
-    
-    // Forçar atualização se o template não tiver os novos códigos unicode (estrela \uD83C\uDF1F)
-    if (!activeTemplates.today[0].includes('\uD83C\uDF1F')) {
-      activeTemplates.tomorrow  = [...DEFAULT_TOMORROW_MESSAGES];
-      activeTemplates.today     = [...DEFAULT_TODAY_MESSAGES];
-      saveTemplatesToStorage();
-    }
   } else {
-    activeTemplates.tomorrow  = [...DEFAULT_TOMORROW_MESSAGES];
-    activeTemplates.today     = [...DEFAULT_TODAY_MESSAGES];
+    activeTemplates.tomorrow = [...DEFAULT_TOMORROW_MESSAGES];
+    activeTemplates.today = [...DEFAULT_TODAY_MESSAGES];
     saveTemplatesToStorage();
   }
   fillTemplatesForm();
@@ -147,9 +227,9 @@ function resetSingleTemplate(type, index) {
 function resetAllTemplates() {
   if (!confirm('Restaurar TODOS os textos para o padrão original da clínica Novo Sorriso?')) return;
 
-  activeTemplates.tomorrow  = [...DEFAULT_TOMORROW_MESSAGES];
-  activeTemplates.today     = [...DEFAULT_TODAY_MESSAGES];
-  
+  activeTemplates.tomorrow = [...DEFAULT_TOMORROW_MESSAGES];
+  activeTemplates.today = [...DEFAULT_TODAY_MESSAGES];
+
   saveTemplatesToStorage();
   fillTemplatesForm();
   showToast('🔄 Padrões Restaurados!', 'Todas as mensagens foram reiniciadas.');
@@ -159,19 +239,18 @@ function resetAllTemplates() {
 
 function replacePlaceholders(templateStr, client) {
   const dateDisp = formatDateDisplay(client.date);
-  const greeting = getGreeting();
-  
+
   return templateStr
     .replace(/\[nome\]/gi, client.name)
     .replace(/\[procedimento\]/gi, client.type)
     .replace(/\[data\]/gi, dateDisp)
     .replace(/\[hora\]/gi, client.time)
-    .replace(/\[clinica\]/gi, CLINIC_NAME)
-    .replace(/\[saudacao\]/gi, greeting);
+    .replace(/\[clinica\]/gi, CLINIC_NAME);
 }
 
 function buildWhatsAppLink(client) {
-  const diff      = daysDiff(parseLocalDateTime(client.date, client.time));
+  const greeting = getGreeting();
+  const diff = daysDiff(parseLocalDateTime(client.date, client.time));
 
   let rawMessage = '';
 
@@ -183,28 +262,19 @@ function buildWhatsAppLink(client) {
     rawMessage = replacePlaceholders(randomTemplate, client);
   }
 
-  const cleanedMessage = cleanStringForWhatsapp(rawMessage);
+  rawMessage = `${greeting}! ` + rawMessage;
+  rawMessage = cleanStringForWhatsapp(rawMessage);
+
   const phone = cleanPhone(client.phone);
   const waPhone = phone.startsWith('55') ? phone : `55${phone}`;
-  
-  // A melhor forma de garantir emojis é usar o link api.whatsapp.com ou wa.me 
-  // com a codificação URI padrão, mas garantindo que o navegador não corrompa os bytes.
-  // Vamos usar o formato que o próprio WhatsApp gera.
-  const encodedText = encodeURIComponent(cleanedMessage)
-    .replace(/\(/g, '%28')
-    .replace(/\)/g, '%29')
-    .replace(/\*/g, '%2A')
-    .replace(/!/g, '%21')
-    .replace(/'/g, '%27');
-  
-  return `https://api.whatsapp.com/send?phone=${waPhone}&text=${encodedText}`;
+  return `https://wa.me/${waPhone}?text=${encodeURIComponent(rawMessage)}`;
 }
 
 // ─── Formatting helpers ──────────────────────────────────────────────────────
 
 function parseLocalDateTime(date, time) {
   const [y, m, d] = date.split('-').map(Number);
-  const [h, min]  = time.split(':').map(Number);
+  const [h, min] = time.split(':').map(Number);
   return new Date(y, m - 1, d, h, min, 0);
 }
 
@@ -213,15 +283,15 @@ function toMidnight(date) {
 }
 
 function daysDiff(targetDate) {
-  const now   = toMidnight(new Date());
-  const tgt   = toMidnight(targetDate);
+  const now = toMidnight(new Date());
+  const tgt = toMidnight(targetDate);
   return Math.round((tgt - now) / (1000 * 60 * 60 * 24));
 }
 
 function getGreeting() {
   const hour = new Date().getHours();
-  if (hour < 12)  return 'Bom dia';
-  if (hour < 18)  return 'Boa tarde';
+  if (hour < 12) return 'Bom dia';
+  if (hour < 18) return 'Boa tarde';
   return 'Boa noite';
 }
 
@@ -243,7 +313,7 @@ function randomItem(arr) {
 function needsReminder(client) {
   if (client.status === 'canceled') return false;
   const appt = parseLocalDateTime(client.date, client.time);
-  const diff  = daysDiff(appt);
+  const diff = daysDiff(appt);
   if (diff === 0) return !client.notifiedToday;
   if (diff === 1) return !client.notifiedTomorrow;
   return false;
@@ -256,8 +326,8 @@ function markContacted(clientId) {
   if (!client) return;
 
   const diff = daysDiff(parseLocalDateTime(client.date, client.time));
-  if (diff === 0) client.notifiedToday     = true;
-  if (diff === 1) client.notifiedTomorrow  = true;
+  if (diff === 0) client.notifiedToday = true;
+  if (diff === 1) client.notifiedTomorrow = true;
 
   saveClients();
   renderAll();
@@ -269,16 +339,25 @@ function contactClient(clientId) {
 
   const link = buildWhatsAppLink(client);
   window.open(link, '_blank');
-  
+
   setTimeout(() => {
     markContacted(clientId);
   }, 600);
 }
 
+function toggleArrived(clientId) {
+  const client = clients.find(c => c.id === clientId);
+  if (!client) return;
+  client.arrived = !client.arrived;
+  saveClients();
+  renderAll();
+  showToast(client.arrived ? '✅ Presença Confirmada' : '🔄 Presença Limpa', `${client.name} status atualizado.`);
+}
+
 // ─── Statistics ─────────────────────────────────────────────────────────────
 
 function updateStats() {
-  const total     = clients.length;
+  const total = clients.length;
   const todayAppt = clients.filter(c => {
     if (c.status === 'canceled') return false;
     return daysDiff(parseLocalDateTime(c.date, c.time)) === 0;
@@ -289,10 +368,10 @@ function updateStats() {
   }).length;
   const pending = clients.filter(needsReminder).length;
 
-  document.getElementById('stat-total-clients').textContent      = total;
+  document.getElementById('stat-total-clients').textContent = total;
   document.getElementById('stat-today-appointments').textContent = todayAppt;
   document.getElementById('stat-tomorrow-appointments').textContent = tomorrowAppt;
-  document.getElementById('stat-pending-contacts').textContent   = pending;
+  document.getElementById('stat-pending-contacts').textContent = pending;
 
   const pendingBadge = document.getElementById('stat-pending-badge');
   if (pendingBadge && pending > 0) {
@@ -305,8 +384,8 @@ function updateStats() {
 // ─── Render Tables ─────────────────────────────────────────────────────────
 
 function renderUpcomingTable() {
-  const tbody = document.getElementById('upcoming-tbody');
-  
+  const container = document.getElementById('upcoming-grid');
+
   const upcoming = clients.filter(c => {
     if (c.status === 'canceled') return false;
     const diff = daysDiff(parseLocalDateTime(c.date, c.time));
@@ -314,39 +393,103 @@ function renderUpcomingTable() {
   });
 
   if (upcoming.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="5"><div class="empty-state" style="padding:2rem">
+    container.innerHTML = `<div class="empty-state" style="padding:2rem">
       <i data-lucide="calendar-off"></i>
       <p>Nenhum agendamento ativo cadastrado.</p>
-    </div></td></tr>`;
+    </div>`;
     lucide.createIcons();
     return;
   }
 
-  tbody.innerHTML = upcoming.map(c => buildTableRow(c, false)).join('');
-  attachContextMenuEvents();
+  container.innerHTML = upcoming.map(c => buildCard(c, false)).join('');
+  lucide.createIcons();
+}
+
+function openClientModalToday(prefilledTime = '09:00') {
+  const modal = document.getElementById('client-modal');
+  document.getElementById('modal-title').innerHTML = '<i data-lucide="user-plus"></i> Encaixar Hoje';
+  document.getElementById('client-form').reset();
+  document.getElementById('client-id').value = '';
+
+  const today = new Date();
+  const yyyy = today.getFullYear();
+  const mm = String(today.getMonth() + 1).padStart(2, '0');
+  const dd = String(today.getDate()).padStart(2, '0');
+  document.getElementById('client-date').value = `${yyyy}-${mm}-${dd}`;
+  document.getElementById('client-time').value = prefilledTime;
+
+  modal.classList.add('active');
+  lucide.createIcons();
+
+  setTimeout(() => document.getElementById('client-name').focus(), 100);
+}
+
+function renderTodayTimeline() {
+  const container = document.getElementById('today-timeline-container');
+  if (!container) return;
+
+  const today = new Date();
+  const yyyy = today.getFullYear();
+  const mm = String(today.getMonth() + 1).padStart(2, '0');
+  const dd = String(today.getDate()).padStart(2, '0');
+  const todayStr = `${yyyy}-${mm}-${dd}`;
+
+  const todayClients = clients.filter(c => c.date === todayStr);
+  const defaultHours = ["08:00", "09:00", "10:00", "11:00", "12:00", "13:00", "14:00", "15:00", "16:00", "17:00", "18:00", "19:00"];
+  const occupiedTimes = todayClients.map(c => c.time);
+  
+  const allTimes = Array.from(new Set([...defaultHours, ...occupiedTimes])).sort();
+
+  let html = '';
+  allTimes.forEach(time => {
+    const clientsAtTime = todayClients.filter(c => c.time === time);
+    
+    html += `<div class="timeline-row">
+      <div class="timeline-time">${time}</div>
+      <div class="timeline-slot-content">`;
+      
+    if (clientsAtTime.length > 0) {
+      // Group them inside a horizontal row or vertical list
+      html += `<div class="client-grid">`;
+      clientsAtTime.forEach(c => {
+        html += buildCard(c, true);
+      });
+      html += `</div>`;
+    } else {
+      html += `
+        <div class="timeline-free-slot" onclick="openClientModalToday('${time}')">
+          <i data-lucide="plus-circle"></i>
+          <span>Horário Disponível — Clique para encaixar</span>
+        </div>`;
+    }
+    
+    html += `</div></div>`;
+  });
+
+  container.innerHTML = html;
   lucide.createIcons();
 }
 
 function renderAllClientsTable(filtered) {
-  const tbody = document.getElementById('all-clients-tbody');
-  const list  = filtered !== undefined ? filtered : clients;
+  const container = document.getElementById('all-clients-grid');
+
+  const list = filtered !== undefined ? filtered : clients;
 
   if (list.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="6"><div class="empty-state" style="padding:2rem">
+    container.innerHTML = `<div class="empty-state" style="padding:2rem">
       <i data-lucide="users"></i>
       <p>Nenhum cliente cadastrado no sistema.</p>
-    </div></td></tr>`;
+    </div>`;
     lucide.createIcons();
     return;
   }
 
-  tbody.innerHTML = list.map(c => buildTableRow(c, true)).join('');
-  attachContextMenuEvents();
+  container.innerHTML = list.map(c => buildCard(c, true)).join('');
   lucide.createIcons();
 }
 
-function buildTableRow(client, showCpf) {
-  const diff        = daysDiff(parseLocalDateTime(client.date, client.time));
+function buildCard(client, showCpf) {
+  const diff = daysDiff(parseLocalDateTime(client.date, client.time));
   const dateDisplay = formatDateDisplay(client.date);
   const statusClass = client.status === 'canceled' ? 'badge-canceled' : 'badge-confirmed';
   const statusLabel = client.status === 'canceled' ? 'Cancelado' : 'Confirmado';
@@ -369,35 +512,51 @@ function buildTableRow(client, showCpf) {
   }
 
   const cpfCell = showCpf
-    ? `<td>${client.cpf ? escapeHtml(client.cpf) : '<span style="color:var(--text-muted)">—</span>'}</td>`
+    ? `<div class="cell-cpf">${client.cpf ? escapeHtml(client.cpf) : '<span style="color:var(--text-muted)">—</span>'}</div>`
     : '';
 
+  const theme = document.documentElement.getAttribute('data-theme');
+  const avatarHtml = theme === 'helo'
+    ? `<div class="card-emote" title="Emote">🦷</div>`
+    : '';
+
+  const arriveButton = client.arrived
+    ? `<button type="button" class="btn-arrive arrived" onclick="event.stopPropagation(); toggleArrived('${client.id}')" title="Desmarcar Chegada"><i data-lucide="check-check"></i> Chegou!</button>`
+    : `<button type="button" class="btn-arrive" onclick="event.stopPropagation(); toggleArrived('${client.id}')" title="Marcar Chegada"><i data-lucide="check"></i> Chegou</button>`;
+
+  const arrivedTag = client.arrived
+    ? `<span class="arrived-tag">(Esse já foi)</span>`
+    : '';
+
+  const arrivedClass = client.arrived ? 'arrived' : '';
+
   return `
-    <tr data-id="${client.id}" class="client-row">
-      <td>
-        <div class="cell-client-name">${escapeHtml(client.name)}</div>
+    <div class="client-card ${arrivedClass}" data-id="${client.id}">
+      ${avatarHtml}
+      <div class="card-content">
+        <div class="cell-client-name">${escapeHtml(client.name)} ${arrivedTag}</div>
         <div class="cell-phone">${escapeHtml(client.phone)}</div>
-      </td>
-      ${cpfCell}
-      <td><span class="procedure-badge">${escapeHtml(client.type)}</span></td>
-      <td>
-        <div class="cell-datetime">
-          <span class="cell-date">${dateDisplay}</span>
-          <span class="cell-time">${client.time}</span>
+        ${cpfCell}
+        <div class="procedure-badge">${escapeHtml(client.type)}</div>
+        <div class="cell-datetime">${dateDisplay} às ${client.time}</div>
+        <div class="reminder-status">${reminderStatus}</div>
+        <div class="card-footer" style="display:flex; justify-content:space-between; align-items:center; margin-top:auto; gap:0.5rem; flex-wrap:wrap;">
+          <div class="status-badge ${statusClass}">${statusLabel}</div>
+          ${arriveButton}
         </div>
-      </td>
-      <td>${reminderStatus}</td>
-      <td><span class="badge ${statusClass}">${statusLabel}</span></td>
-    </tr>`;
+      </div>
+    </div>`;
 }
+
 
 // ─── Custom Floating Context Menu ───────────────────────────────────────────
 
 function attachContextMenuEvents() {
-  document.querySelectorAll('.client-row').forEach(row => {
-    row.addEventListener('contextmenu', function(e) {
+  // Attach context menu to each client card
+  document.querySelectorAll('.client-card').forEach(card => {
+    card.addEventListener('contextmenu', function (e) {
       e.preventDefault();
-      
+
       const clientId = this.getAttribute('data-id');
       const client = clients.find(c => c.id === clientId);
       if (!client) return;
@@ -443,14 +602,16 @@ function attachContextMenuEvents() {
   });
 }
 
-document.addEventListener('click', function(e) {
+
+
+document.addEventListener('click', function (e) {
   const menu = document.getElementById('context-menu');
   if (menu && !menu.contains(e.target)) {
     menu.classList.remove('active');
   }
 });
 
-window.addEventListener('scroll', function() {
+window.addEventListener('scroll', function () {
   const menu = document.getElementById('context-menu');
   if (menu) menu.classList.remove('active');
 }, true);
@@ -484,16 +645,16 @@ function triggerCtxDelete() {
 // ─── Filter & Sort Clients ──────────────────────────────────────────────────
 
 function filterClients() {
-  const search    = document.getElementById('client-search').value.toLowerCase().trim();
-  const status    = document.getElementById('filter-status').value;
+  const search = document.getElementById('client-search').value.toLowerCase().trim();
+  const status = document.getElementById('filter-status').value;
   const timeframe = document.getElementById('filter-timeframe').value;
 
   let filtered = [...clients];
 
   if (search) {
     filtered = filtered.filter(c =>
-      c.name.toLowerCase().includes(search)  ||
-      c.phone.includes(search)               ||
+      c.name.toLowerCase().includes(search) ||
+      c.phone.includes(search) ||
       (c.cpf && c.cpf.includes(search))
     );
   }
@@ -505,10 +666,10 @@ function filterClients() {
   if (timeframe !== 'all') {
     filtered = filtered.filter(c => {
       const diff = daysDiff(parseLocalDateTime(c.date, c.time));
-      if (timeframe === 'today')    return diff === 0;
+      if (timeframe === 'today') return diff === 0;
       if (timeframe === 'tomorrow') return diff === 1;
       if (timeframe === 'upcoming') return diff > 1 && diff <= 60;
-      if (timeframe === 'past')     return diff < 0;
+      if (timeframe === 'past') return diff < 0;
       return true;
     });
   }
@@ -523,7 +684,9 @@ function renderAll() {
   clients = sortChronologically(clients);
   updateStats();
   renderUpcomingTable();
+  renderTodayTimeline();
   filterClients();
+  attachContextMenuEvents();
   updateGreeting();
   lucide.createIcons();
 }
@@ -535,21 +698,17 @@ function openClientModal() {
   document.getElementById('modal-title').innerHTML = '<i data-lucide="user-plus"></i> Novo Cliente';
   document.getElementById('client-form').reset();
   document.getElementById('client-id').value = '';
-  
-  // Reset custom type field
-  document.getElementById('custom-type-group').style.display = 'none';
-  document.getElementById('client-custom-type').required = false;
-  
+
   const today = new Date();
-  const yyyy  = today.getFullYear();
-  const mm    = String(today.getMonth() + 1).padStart(2, '0');
-  const dd    = String(today.getDate()).padStart(2, '0');
+  const yyyy = today.getFullYear();
+  const mm = String(today.getMonth() + 1).padStart(2, '0');
+  const dd = String(today.getDate()).padStart(2, '0');
   document.getElementById('client-date').value = `${yyyy}-${mm}-${dd}`;
-  document.getElementById('client-time').value  = '09:00';
-  
+  document.getElementById('client-time').value = '09:00';
+
   modal.classList.add('active');
   lucide.createIcons();
-  
+
   setTimeout(() => document.getElementById('client-name').focus(), 100);
 }
 
@@ -562,53 +721,38 @@ function openEditModal(clientId) {
   if (!client) return;
 
   document.getElementById('modal-title').innerHTML = '<i data-lucide="pencil"></i> Editar Cliente';
-  document.getElementById('client-id').value      = client.id;
-  document.getElementById('client-name').value    = client.name;
-  document.getElementById('client-phone').value   = client.phone;
-  document.getElementById('client-cpf').value     = client.cpf   || '';
-  
-  // Lógica para carregar tipo de procedimento
-  const standardTypes = [
-    "Consulta Geral", "Limpeza & Profilaxia", "Canal / Endodontia", 
-    "Aparelho / Ortodontia", "Restauração", "Extração / Cirurgia", 
-    "Implante / Prótese", "Clareamento Dental"
-  ];
-  
-  if (standardTypes.includes(client.type)) {
-    document.getElementById('client-type').value = client.type;
-    document.getElementById('custom-type-group').style.display = 'none';
-    document.getElementById('client-custom-type').required = false;
-  } else {
-    document.getElementById('client-type').value = 'Outros';
-    document.getElementById('custom-type-group').style.display = 'block';
-    document.getElementById('client-custom-type').value = client.type;
-    document.getElementById('client-custom-type').required = true;
-  }
-  
-  document.getElementById('client-date').value    = client.date;
-  document.getElementById('client-time').value    = client.time;
-  document.getElementById('client-status').value  = client.status;
+  document.getElementById('client-id').value = client.id;
+  document.getElementById('client-name').value = client.name;
+  document.getElementById('client-phone').value = client.phone;
+  document.getElementById('client-cpf').value = client.cpf || '';
+  document.getElementById('client-type').value = client.type;
+  document.getElementById('client-date').value = client.date;
+  document.getElementById('client-time').value = client.time;
+  document.getElementById('client-status').value = client.status;
 
   document.getElementById('client-modal').classList.add('active');
   lucide.createIcons();
-  
+
   setTimeout(() => document.getElementById('client-name').focus(), 100);
 }
 
 function saveClient(event) {
   event.preventDefault();
 
-  const id     = document.getElementById('client-id').value;
-  const name   = document.getElementById('client-name').value.trim();
-  const phone  = document.getElementById('client-phone').value.trim();
-  const cpf    = document.getElementById('client-cpf').value.trim();
-  let   type   = document.getElementById('client-type').value;
-  const date   = document.getElementById('client-date').value;
-  const time   = document.getElementById('client-time').value;
+  const id = document.getElementById('client-id').value;
+  const name = document.getElementById('client-name').value.trim();
+  const phone = document.getElementById('client-phone').value.trim();
+  const cpf = document.getElementById('client-cpf').value.trim();
+  const type = document.getElementById('client-type').value;
+  const date = document.getElementById('client-date').value;
+  const time = document.getElementById('client-time').value;
   const status = document.getElementById('client-status').value;
 
-  if (type === 'Outros') {
-    type = document.getElementById('client-custom-type').value.trim() || 'Outros';
+  const appointmentDate = parseLocalDateTime(date, time);
+  const now = new Date();
+  if (appointmentDate < now) {
+    showToast('⚠ Horário Passado', 'Não é permitido agendar em data/hora passada.');
+    return;
   }
 
   if (id) {
@@ -616,7 +760,7 @@ function saveClient(event) {
     if (idx !== -1) {
       const existing = clients[idx];
       const dateChanged = existing.date !== date || existing.time !== time;
-      
+
       clients[idx] = {
         ...existing,
         name,
@@ -627,12 +771,12 @@ function saveClient(event) {
         time,
         status,
         notifiedTomorrow: dateChanged ? false : existing.notifiedTomorrow,
-        notifiedToday:    dateChanged ? false : existing.notifiedToday,
+        notifiedToday: dateChanged ? false : existing.notifiedToday,
       };
     }
   } else {
     clients.push({
-      id:               generateId(),
+      id: generateId(),
       name,
       phone,
       cpf,
@@ -641,8 +785,8 @@ function saveClient(event) {
       time,
       status,
       notifiedTomorrow: false,
-      notifiedToday:    false,
-      createdAt:        new Date().toISOString(),
+      notifiedToday: false,
+      createdAt: new Date().toISOString(),
     });
   }
 
@@ -650,7 +794,7 @@ function saveClient(event) {
   saveClients();
   closeClientModal();
   renderAll();
-  
+
   showToast('💾 Salvo com sucesso', `${name} agora esta na lista.`);
 }
 
@@ -712,10 +856,10 @@ function switchTab(tabName) {
 
 function updateGreeting() {
   const greeting = getGreeting();
-  const now      = new Date();
-  const dateStr  = now.toLocaleDateString('pt-BR', { weekday: 'long', day: '2-digit', month: 'long' });
+  const now = new Date();
+  const dateStr = now.toLocaleDateString('pt-BR', { weekday: 'long', day: '2-digit', month: 'long' });
 
-  document.getElementById('greeting-title').textContent    = `${greeting}, Helo! 👋`;
+  document.getElementById('greeting-title').textContent = `${greeting}, Helo! 👋`;
   document.getElementById('greeting-subtitle').textContent = `${capitalize(dateStr)} • Lista organizada por horario.`;
 }
 
@@ -834,7 +978,7 @@ function showToast(title, desc) {
   const toast = document.getElementById('toast');
   if (!toast) return;
   toast.querySelector('.toast-title').textContent = title;
-  toast.querySelector('.toast-desc').textContent  = desc;
+  toast.querySelector('.toast-desc').textContent = desc;
   toast.classList.add('show');
 
   if (toastTimeout) clearTimeout(toastTimeout);
@@ -851,11 +995,11 @@ function exportClients() {
 
   const json = JSON.stringify(clients, null, 2);
   const blob = new Blob([json], { type: 'application/json' });
-  const url  = URL.createObjectURL(blob);
-  const a    = document.createElement('a');
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
   const date = new Date().toLocaleDateString('pt-BR').replace(/\//g, '-');
-  
-  a.href     = url;
+
+  a.href = url;
   a.download = `clientes_novo_sorriso_${date}.json`;
   a.click();
   URL.revokeObjectURL(url);
@@ -877,33 +1021,15 @@ document.addEventListener('keydown', (e) => {
 });
 
 // Close modal on background clicks
-document.getElementById('client-modal').addEventListener('click', function(e) {
+document.getElementById('client-modal').addEventListener('click', function (e) {
   if (e.target === this) closeClientModal();
 });
 
 // Phone & CPF Input Masks
 function applyInputMasks() {
-  // Listener para o campo "Outros"
-  const typeSelect = document.getElementById('client-type');
-  const customGroup = document.getElementById('custom-type-group');
-  const customInput = document.getElementById('client-custom-type');
-  
-  if (typeSelect) {
-    typeSelect.addEventListener('change', function() {
-      if (this.value === 'Outros') {
-        customGroup.style.display = 'block';
-        customInput.required = true;
-        customInput.focus();
-      } else {
-        customGroup.style.display = 'none';
-        customInput.required = false;
-      }
-    });
-  }
-
   const phoneInput = document.getElementById('client-phone');
   if (phoneInput) {
-    phoneInput.addEventListener('input', function() {
+    phoneInput.addEventListener('input', function () {
       let value = this.value.replace(/\D/g, '');
       if (value.length <= 10) {
         value = value.replace(/^(\d{2})(\d{4})(\d{0,4})$/, '($1) $2-$3');
@@ -916,7 +1042,7 @@ function applyInputMasks() {
 
   const cpfInput = document.getElementById('client-cpf');
   if (cpfInput) {
-    cpfInput.addEventListener('input', function() {
+    cpfInput.addEventListener('input', function () {
       let value = this.value.replace(/\D/g, '');
       value = value.replace(/^(\d{3})(\d{3})(\d{3})(\d{0,2})$/, '$1.$2.$3-$4');
       this.value = value;
@@ -984,10 +1110,10 @@ function initGameEngine() {
   canvas = document.getElementById('game-canvas');
   if (!canvas) return;
   ctx = canvas.getContext('2d');
-  
+
   loadHighScores();
   selectMiniGame(selectedGame);
-  
+
   // Custom Keyboard listener inside Joguinhos
   window.addEventListener('keydown', handleGameKeys, true);
 }
@@ -1004,7 +1130,7 @@ function stopGameLoop() {
 function selectMiniGame(gameKey) {
   stopGameLoop();
   selectedGame = gameKey;
-  
+
   // Highlight active selector card
   document.querySelectorAll('.game-select-card').forEach(c => c.classList.remove('active'));
   const card = document.getElementById(`game-card-${gameKey}`);
@@ -1035,7 +1161,7 @@ function selectMiniGame(gameKey) {
   }
 
   document.getElementById('overlay-instruction').textContent = 'Pressione ESPAÇO para Iniciar!';
-  
+
   // Initial frame drawing
   drawInitialCanvas();
 }
@@ -1043,11 +1169,11 @@ function selectMiniGame(gameKey) {
 function drawInitialCanvas() {
   if (!ctx || !canvas) return;
   ctx.clearRect(0, 0, canvas.width, canvas.height);
-  
+
   // Draw beautiful pastel backdrop grid
   ctx.fillStyle = '#fff9fb';
   ctx.fillRect(0, 0, canvas.width, canvas.height);
-  
+
   ctx.fillStyle = '#ffeef2';
   ctx.font = '800 24px "Fredoka"';
   ctx.textAlign = 'center';
@@ -1093,7 +1219,7 @@ function startGamePlay() {
   gameState = 'playing';
   currentScore = 0;
   document.getElementById('game-currentscore').textContent = currentScore;
-  
+
   // Hide overlay screen
   const overlay = document.getElementById('game-overlay');
   overlay.style.opacity = '0';
@@ -1131,7 +1257,7 @@ function startGamePlay() {
 
 function triggerGameOver() {
   gameState = 'gameover';
-  
+
   // Save High score if broken
   if (currentScore > (highScores[selectedGame] || 0)) {
     highScores[selectedGame] = currentScore;
@@ -1160,7 +1286,7 @@ function gameLoop(currentTime) {
     const msSinceLastRender = currentTime - lastRenderTime;
     if (msSinceLastRender < snakeSpeed) return;
     lastRenderTime = currentTime;
-    
+
     updateSnake();
     drawSnakeGame();
   } else if (selectedGame === 'dino') {
@@ -1218,7 +1344,7 @@ function updateSnake() {
 
 function drawSnakeGame() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
-  
+
   // Background
   ctx.fillStyle = '#fff5f8';
   ctx.fillRect(0, 0, canvas.width, canvas.height);
@@ -1353,7 +1479,7 @@ function drawDinoGame() {
   // Draw Dino (Winged Tooth Mascot)
   const px = 100;
   const py = dinoPlayer.y;
-  
+
   ctx.fillStyle = '#ffffff'; // White tooth
   ctx.beginPath();
   ctx.arc(px + 15, py + 15, 15, Math.PI, 0, false); // top crown
@@ -1397,7 +1523,7 @@ function drawDinoGame() {
       ctx.beginPath();
       ctx.arc(obs.x + 15, 350 - 15, 15, 0, Math.PI * 2);
       ctx.fill();
-      
+
       // Angry eyes
       ctx.fillStyle = '#ffffff';
       ctx.beginPath();
