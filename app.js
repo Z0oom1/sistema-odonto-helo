@@ -34,7 +34,14 @@ const MASCOT_MESSAGES = [
 
 // ─── Global State ──────────────────────────────────────────────────────────
 
+const CLIENTS_REGISTRY_KEY = 'odonto_helo_clients_registry';
+const APPOINTMENTS_KEY = 'odonto_helo_appointments';
+
 let clients = [];
+let clientsRegistry = [];
+let appointments = [];
+let dashboardSelectedDate = '';
+let currentTab = 'dashboard';
 let activeClientIdForCtx = null;
 
 let activeTemplates = {
@@ -50,6 +57,14 @@ function generateId() {
 
 function saveClients() {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(clients));
+}
+
+function saveClientsRegistry() {
+  localStorage.setItem(CLIENTS_REGISTRY_KEY, JSON.stringify(clientsRegistry));
+}
+
+function saveAppointments() {
+  localStorage.setItem(APPOINTMENTS_KEY, JSON.stringify(appointments));
 }
 
 function cleanStringForWhatsapp(str) {
@@ -81,13 +96,134 @@ function verificarProcedimentoOutros() {
 }
 
 function loadClients() {
-  const raw = localStorage.getItem(STORAGE_KEY);
+  migrateData();
+  loadClientsRegistry();
+  loadAppointments();
+}
+
+function loadClientsRegistry() {
+  const raw = localStorage.getItem(CLIENTS_REGISTRY_KEY);
   if (raw) {
-    clients = JSON.parse(raw);
-    clients = sortChronologically(clients);
+    try {
+      clientsRegistry = JSON.parse(raw);
+    } catch (e) {
+      console.error("Error parsing clientsRegistry:", e);
+      clientsRegistry = [];
+    }
   } else {
-    clients = [];
-    saveClients();
+    clientsRegistry = [];
+    saveClientsRegistry();
+  }
+}
+
+function loadAppointments() {
+  const raw = localStorage.getItem(APPOINTMENTS_KEY);
+  if (raw) {
+    try {
+      appointments = JSON.parse(raw);
+      appointments = sortAppointments(appointments);
+    } catch (e) {
+      console.error("Error parsing appointments:", e);
+      appointments = [];
+    }
+  } else {
+    appointments = [];
+    saveAppointments();
+  }
+}
+
+function sortAppointments(apptArray) {
+  return sortChronologically(apptArray);
+}
+
+function migrateData() {
+  const oldRaw = localStorage.getItem(STORAGE_KEY);
+  if (oldRaw) {
+    let oldClients = [];
+    try {
+      oldClients = JSON.parse(oldRaw);
+    } catch (e) {
+      console.error("Failed to parse old localStorage data", e);
+    }
+
+    if (Array.isArray(oldClients) && oldClients.length > 0) {
+      const existingRegRaw = localStorage.getItem(CLIENTS_REGISTRY_KEY);
+      let existingReg = [];
+      if (existingRegRaw) {
+        try {
+          existingReg = JSON.parse(existingRegRaw);
+        } catch (e) {
+          console.error(e);
+        }
+      }
+      
+      const existingApptRaw = localStorage.getItem(APPOINTMENTS_KEY);
+      let existingAppt = [];
+      if (existingApptRaw) {
+        try {
+          existingAppt = JSON.parse(existingApptRaw);
+        } catch (e) {
+          console.error(e);
+        }
+      }
+
+      oldClients.forEach(oldItem => {
+        if (!oldItem) return;
+        
+        const cleanNameVal = oldItem.name ? oldItem.name.trim() : 'Sem Nome';
+        const cleanPhoneVal = oldItem.phone ? cleanPhone(oldItem.phone) : '';
+        const cleanCpfVal = oldItem.cpf ? oldItem.cpf.trim() : '';
+
+        // Find if client already exists in registry by Name and Phone, or CPF
+        let client = existingReg.find(c => 
+          (cleanNameVal && c.name === cleanNameVal && cleanPhoneVal && cleanPhone(c.phone) === cleanPhoneVal) ||
+          (cleanCpfVal && c.cpf && c.cpf === cleanCpfVal)
+        );
+
+        if (!client) {
+          client = {
+            id: oldItem.clientId || generateId(),
+            name: cleanNameVal,
+            phone: oldItem.phone || '',
+            cpf: cleanCpfVal,
+            createdAt: oldItem.createdAt || new Date().toISOString()
+          };
+          existingReg.push(client);
+        }
+
+        // Create appointment linked to this client
+        let status = 'esperando';
+        if (oldItem.arrived === true) {
+          status = 'chegou';
+        } else if (oldItem.status === 'canceled') {
+          status = 'canceled';
+        } else if (oldItem.status === 'chegou' || oldItem.status === 'não veio' || oldItem.status === 'esperando') {
+          status = oldItem.status;
+        }
+
+        const appt = {
+          id: oldItem.id || generateId(),
+          clientId: client.id,
+          type: oldItem.type || 'Consulta',
+          date: oldItem.date || getTodayDateStr(),
+          time: oldItem.time || '09:00',
+          status: status,
+          notifiedTomorrow: oldItem.notifiedTomorrow || false,
+          notifiedToday: oldItem.notifiedToday || false,
+          createdAt: oldItem.createdAt || new Date().toISOString()
+        };
+
+        // Avoid duplicate appointments
+        if (!existingAppt.some(a => a.id === appt.id)) {
+          existingAppt.push(appt);
+        }
+      });
+
+      localStorage.setItem(CLIENTS_REGISTRY_KEY, JSON.stringify(existingReg));
+      localStorage.setItem(APPOINTMENTS_KEY, JSON.stringify(existingAppt));
+    }
+    // Delete the old storage key so we don't migrate again
+    localStorage.removeItem(STORAGE_KEY);
   }
 }
 
@@ -95,11 +231,21 @@ function loadClients() {
 
 function loadTemplates() {
   const raw = localStorage.getItem(TEMPLATE_KEY);
+  let parsed = null;
   if (raw) {
-    activeTemplates = JSON.parse(raw);
+    try {
+      parsed = JSON.parse(raw);
+    } catch (e) {
+      console.error("Error parsing templates:", e);
+    }
+  }
+  if (parsed && Array.isArray(parsed.tomorrow) && Array.isArray(parsed.today)) {
+    activeTemplates = parsed;
   } else {
-    activeTemplates.tomorrow = [...DEFAULT_TOMORROW_MESSAGES];
-    activeTemplates.today = [...DEFAULT_TODAY_MESSAGES];
+    activeTemplates = {
+      tomorrow: [...DEFAULT_TOMORROW_MESSAGES],
+      today: [...DEFAULT_TODAY_MESSAGES]
+    };
     saveTemplatesToStorage();
   }
   fillTemplatesForm();
@@ -199,9 +345,16 @@ function buildWhatsAppLink(client) {
 // ─── Formatting helpers ──────────────────────────────────────────────────────
 
 function parseLocalDateTime(date, time) {
-  const [y, m, d] = date.split('-').map(Number);
-  const [h, min] = time.split(':').map(Number);
-  return new Date(y, m - 1, d, h, min, 0);
+  if (!date) date = getTodayDateStr();
+  if (!time) time = '00:00';
+  try {
+    const [y, m, d] = date.split('-').map(Number);
+    const [h, min] = time.split(':').map(Number);
+    return new Date(y, m - 1, d, h, min, 0);
+  } catch (e) {
+    console.error("Error parsing date/time:", date, time, e);
+    return new Date();
+  }
 }
 
 function toMidnight(date) {
@@ -222,12 +375,18 @@ function getGreeting() {
 }
 
 function formatDateDisplay(dateStr) {
-  const [y, m, d] = dateStr.split('-');
-  return `${d}/${m}/${y}`;
+  if (!dateStr) return '';
+  try {
+    const [y, m, d] = dateStr.split('-');
+    return `${d}/${m}/${y}`;
+  } catch (e) {
+    return '';
+  }
 }
 
 function cleanPhone(phone) {
-  return phone.replace(/\D/g, '');
+  if (!phone) return '';
+  return String(phone).replace(/\D/g, '');
 }
 
 function randomItem(arr) {
@@ -236,65 +395,98 @@ function randomItem(arr) {
 
 // ─── Reminder Logic ─────────────────────────────────────────────────────────
 
-function needsReminder(client) {
-  if (client.status === 'canceled') return false;
-  const appt = parseLocalDateTime(client.date, client.time);
-  const diff = daysDiff(appt);
-  if (diff === 0) return !client.notifiedToday;
-  if (diff === 1) return !client.notifiedTomorrow;
+function needsReminder(appt) {
+  if (appt.status === 'canceled') return false;
+  const targetDate = parseLocalDateTime(appt.date, appt.time);
+  const diff = daysDiff(targetDate);
+  if (diff === 0) return !appt.notifiedToday;
+  if (diff === 1) return !appt.notifiedTomorrow;
   return false;
 }
 
-// ─── Mark as Contacted ──────────────────────────────────────────────────────
+// ─── Contacts & Statuses ────────────────────────────────────────────────────
 
-function markContacted(clientId) {
-  const client = clients.find(c => c.id === clientId);
+function contactClient(apptId) {
+  const appt = appointments.find(a => a.id === apptId);
+  if (!appt) return;
+
+  const client = clientsRegistry.find(c => c.id === appt.clientId);
   if (!client) return;
 
-  const diff = daysDiff(parseLocalDateTime(client.date, client.time));
-  if (diff === 0) client.notifiedToday = true;
-  if (diff === 1) client.notifiedTomorrow = true;
+  const url = buildWhatsappUrl(client, appt);
+  
+  const targetDate = parseLocalDateTime(appt.date, appt.time);
+  const diff = daysDiff(targetDate);
+  if (diff === 0) {
+    appt.notifiedToday = true;
+  } else if (diff === 1) {
+    appt.notifiedTomorrow = true;
+  }
 
-  saveClients();
+  saveAppointments();
   renderAll();
+  
+  window.open(url, '_blank');
 }
 
-function contactClient(clientId) {
-  const client = clients.find(c => c.id === clientId);
-  if (!client) return;
+function buildWhatsappUrl(client, appt) {
+  const greeting = getGreeting();
+  const targetDate = parseLocalDateTime(appt.date, appt.time);
+  const diff = daysDiff(targetDate);
+  let templatesList = [];
 
-  const link = buildWhatsAppLink(client);
-  window.open(link, '_blank');
+  if (diff === 0) {
+    templatesList = activeTemplates.today;
+  } else {
+    templatesList = activeTemplates.tomorrow;
+  }
 
-  setTimeout(() => {
-    markContacted(clientId);
-  }, 600);
-}
+  let rawMessage = randomItem(templatesList)
+    .replace(/\[nome\]/gi, client.name)
+    .replace(/\[procedimento\]/gi, appt.type)
+    .replace(/\[data\]/gi, formatDateDisplay(appt.date))
+    .replace(/\[hora\]/gi, appt.time)
+    .replace(/\[clinica\]/gi, CLINIC_NAME);
 
-function toggleArrived(clientId) {
-  const client = clients.find(c => c.id === clientId);
-  if (!client) return;
-  client.arrived = !client.arrived;
-  saveClients();
-  renderAll();
-  showToast(client.arrived ? '✅ Presença Confirmada' : '🔄 Presença Limpa', `${client.name} status atualizado.`);
+  rawMessage = `${greeting}! ` + rawMessage;
+  rawMessage = cleanStringForWhatsapp(rawMessage);
+
+  const phone = cleanPhone(client.phone);
+  const waPhone = phone.startsWith('55') ? phone : `55${phone}`;
+  return `https://wa.me/${waPhone}?text=${encodeURIComponent(rawMessage)}`;
 }
 
 // ─── Statistics ─────────────────────────────────────────────────────────────
 
 function updateStats() {
-  const total = clients.length;
-  const todayAppt = clients.filter(c => {
-    if (c.status === 'canceled') return false;
-    return daysDiff(parseLocalDateTime(c.date, c.time)) === 0;
-  }).length;
-  const tomorrowAppt = clients.filter(c => {
-    if (c.status === 'canceled') return false;
-    return daysDiff(parseLocalDateTime(c.date, c.time)) === 1;
-  }).length;
-  const pending = clients.filter(needsReminder).length;
+  const totalClients = clientsRegistry.length;
+  
+  const today = new Date();
+  const yyyy = today.getFullYear();
+  const mm = String(today.getMonth() + 1).padStart(2, '0');
+  const dd = String(today.getDate()).padStart(2, '0');
+  const todayStr = `${yyyy}-${mm}-${dd}`;
 
-  document.getElementById('stat-total-clients').textContent = total;
+  const tomorrow = new Date(today);
+  tomorrow.setDate(today.getDate() + 1);
+  const tYyyy = tomorrow.getFullYear();
+  const tMm = String(tomorrow.getMonth() + 1).padStart(2, '0');
+  const tDd = String(tomorrow.getDate()).padStart(2, '0');
+  const tomorrowStr = `${tYyyy}-${tMm}-${tDd}`;
+
+  const todayAppt = appointments.filter(c => {
+    if (c.status === 'canceled') return false;
+    return c.date === todayStr;
+  }).length;
+
+  const tomorrowAppt = appointments.filter(c => {
+    if (c.status === 'canceled') return false;
+    return c.date === tomorrowStr;
+  }).length;
+
+  const pending = appointments.filter(needsReminder).length;
+
+  document.getElementById('stat-total-clients').textContent = totalClients;
   document.getElementById('stat-today-appointments').textContent = todayAppt;
   document.getElementById('stat-tomorrow-appointments').textContent = tomorrowAppt;
   document.getElementById('stat-pending-contacts').textContent = pending;
@@ -307,99 +499,233 @@ function updateStats() {
   }
 }
 
-// ─── Render Tables ─────────────────────────────────────────────────────────
+// ─── Render Dashboard ────────────────────────────────────────────────────────
 
-function renderUpcomingTable() {
-  const container = document.getElementById('upcoming-grid');
+function initDashboardDate() {
+  if (!dashboardSelectedDate) {
+    const today = new Date();
+    const yyyy = today.getFullYear();
+    const mm = String(today.getMonth() + 1).padStart(2, '0');
+    const dd = String(today.getDate()).padStart(2, '0');
+    dashboardSelectedDate = `${yyyy}-${mm}-${dd}`;
+  }
+  const datePicker = document.getElementById('dashboard-date-picker');
+  if (datePicker) {
+    datePicker.value = dashboardSelectedDate;
+  }
+}
 
-  const upcoming = clients.filter(c => {
-    if (c.status === 'canceled') return false;
-    const diff = daysDiff(parseLocalDateTime(c.date, c.time));
-    return diff >= 0;
-  });
+function getNextDayStr(dateStr) {
+  const parts = dateStr.split('-');
+  const date = new Date(Number(parts[0]), Number(parts[1]) - 1, Number(parts[2]));
+  date.setDate(date.getDate() + 1);
+  const yyyy = date.getFullYear();
+  const mm = String(date.getMonth() + 1).padStart(2, '0');
+  const dd = String(date.getDate()).padStart(2, '0');
+  return `${yyyy}-${mm}-${dd}`;
+}
 
-  if (upcoming.length === 0) {
-    container.innerHTML = `<div class="empty-state" style="padding:2rem">
+function adjustDashboardDate(offset) {
+  const dateInput = document.getElementById('dashboard-date-picker');
+  if (!dateInput || !dateInput.value) return;
+
+  const currentDate = new Date(dateInput.value + 'T00:00:00');
+  currentDate.setDate(currentDate.getDate() + offset);
+
+  const yyyy = currentDate.getFullYear();
+  const mm = String(currentDate.getMonth() + 1).padStart(2, '0');
+  const dd = String(currentDate.getDate()).padStart(2, '0');
+  dashboardSelectedDate = `${yyyy}-${mm}-${dd}`;
+  dateInput.value = dashboardSelectedDate;
+
+  renderAll();
+}
+
+function onDashboardDateChange() {
+  const dateInput = document.getElementById('dashboard-date-picker');
+  if (dateInput) {
+    dashboardSelectedDate = dateInput.value;
+    renderAll();
+  }
+}
+
+function renderDashboardAppointments() {
+  initDashboardDate();
+
+  const containerToday = document.getElementById('today-appointments-grid');
+  const containerTomorrow = document.getElementById('tomorrow-appointments-grid');
+
+  if (!containerToday || !containerTomorrow) return;
+
+  const nextDayStr = getNextDayStr(dashboardSelectedDate);
+
+  const todayLabel = document.getElementById('label-today-appointments');
+  const tomorrowLabel = document.getElementById('label-tomorrow-appointments');
+
+  const formattedToday = formatDateDisplay(dashboardSelectedDate);
+  const formattedTomorrow = formatDateDisplay(nextDayStr);
+
+  if (todayLabel) todayLabel.textContent = `Consultas do Dia (${formattedToday})`;
+  if (tomorrowLabel) tomorrowLabel.textContent = `Consultas de Amanhã (${formattedTomorrow})`;
+
+  const todayAppts = appointments.filter(a => a.date === dashboardSelectedDate && a.status !== 'canceled');
+  const tomorrowAppts = appointments.filter(a => a.date === nextDayStr && a.status !== 'canceled');
+
+  if (todayAppts.length === 0) {
+    containerToday.innerHTML = `<div class="empty-state" style="padding:2rem">
       <i data-lucide="calendar-off"></i>
-      <p>Nenhum agendamento ativo cadastrado.</p>
+      <p>Nenhuma consulta ativa agendada para este dia.</p>
     </div>`;
-    lucide.createIcons();
-    return;
+  } else {
+    containerToday.innerHTML = todayAppts.map(a => buildAppointmentCard(a)).join('');
   }
 
-  container.innerHTML = upcoming.map(c => buildCard(c, false)).join('');
+  if (tomorrowAppts.length === 0) {
+    containerTomorrow.innerHTML = `<div class="empty-state" style="padding:2rem">
+      <i data-lucide="calendar-off"></i>
+      <p>Nenhuma consulta ativa agendada para o dia seguinte.</p>
+    </div>`;
+  } else {
+    containerTomorrow.innerHTML = tomorrowAppts.map(a => buildAppointmentCard(a)).join('');
+  }
+
   lucide.createIcons();
 }
 
-function openClientModalToday(prefilledTime = '09:00') {
-  const modal = document.getElementById('client-modal');
-  document.getElementById('modal-title').innerHTML = '<i data-lucide="user-plus"></i> Encaixar Hoje';
-  document.getElementById('client-form').reset();
-  document.getElementById('client-id').value = '';
+function buildAppointmentCard(appt) {
+  const client = clientsRegistry.find(c => c.id === appt.clientId) || {
+    name: 'Cliente Não Encontrado',
+    phone: '',
+    cpf: ''
+  };
 
-  const today = new Date();
-  const yyyy = today.getFullYear();
-  const mm = String(today.getMonth() + 1).padStart(2, '0');
-  const dd = String(today.getDate()).padStart(2, '0');
-  document.getElementById('client-date').value = `${yyyy}-${mm}-${dd}`;
-  document.getElementById('client-time').value = prefilledTime;
+  const diff = daysDiff(parseLocalDateTime(appt.date, appt.time));
+  const dateDisplay = formatDateDisplay(appt.date);
+  
+  let statusClass = 'badge-confirmed';
+  let statusLabel = 'Confirmado';
+  if (appt.status === 'canceled') {
+    statusClass = 'badge-canceled';
+    statusLabel = 'Cancelado';
+  } else if (appt.status === 'chegou') {
+    statusClass = 'badge-confirmed';
+    statusLabel = 'Chegou';
+  } else if (appt.status === 'não veio') {
+    statusClass = 'badge-canceled';
+    statusLabel = 'Não Veio';
+  } else {
+    statusClass = 'badge-confirmed';
+    statusLabel = 'Esperando';
+  }
 
-  modal.classList.add('active');
-  lucide.createIcons();
+  let reminderStatus;
+  if (appt.status === 'canceled') {
+    reminderStatus = `<span class="badge badge-canceled">Cancelado</span>`;
+  } else if (appt.status === 'chegou') {
+    reminderStatus = `<span style="font-size:0.8rem;color:#16a34a;font-weight:700;">✅ Atendido</span>`;
+  } else if (appt.status === 'não veio') {
+    reminderStatus = `<span style="font-size:0.8rem;color:#dc2626;font-weight:700;">❌ Faltou</span>`;
+  } else if (diff < 0) {
+    reminderStatus = `<span style="font-size:0.8rem;color:var(--text-muted)">Realizada</span>`;
+  } else if (diff === 0) {
+    reminderStatus = appt.notifiedToday
+      ? `<span class="reminder-ok"><i data-lucide="check-circle-2"></i> Avisado Hoje</span>`
+      : `<span class="reminder-warning reminder-urgent">⚡ Avisar HOJE!</span>`;
+  } else if (diff === 1) {
+    reminderStatus = appt.notifiedTomorrow
+      ? `<span class="reminder-ok"><i data-lucide="check-circle-2"></i> Avisado 1d</span>`
+      : `<span class="reminder-warning">⚠ Avisar Amanhã</span>`;
+  } else {
+    reminderStatus = `<span style="font-size:0.8rem;color:var(--text-muted)">Em ${diff} dias</span>`;
+  }
 
-  setTimeout(() => document.getElementById('client-name').focus(), 100);
+  const theme = document.documentElement.getAttribute('data-theme');
+  const avatarHtml = theme === 'helo'
+    ? `<div class="card-emote" title="Emote">🦷</div>`
+    : '';
+
+  let statusButton = '';
+  if (appt.status === 'esperando' || !appt.status) {
+    statusButton = `<button type="button" class="btn-arrive" onclick="event.stopPropagation(); openStatusModal('${appt.id}')" title="Atualizar Status"><i data-lucide="clock"></i> Esperando</button>`;
+  } else if (appt.status === 'chegou') {
+    statusButton = `<button type="button" class="btn-arrive arrived" onclick="event.stopPropagation(); openStatusModal('${appt.id}')" title="Atualizar Status" style="background-color:#16a34a;color:white;"><i data-lucide="check-check"></i> Chegou!</button>`;
+  } else if (appt.status === 'não veio') {
+    statusButton = `<button type="button" class="btn-arrive" onclick="event.stopPropagation(); openStatusModal('${appt.id}')" title="Atualizar Status" style="background-color:#dc2626;color:white;"><i data-lucide="x-circle"></i> Não Veio</button>`;
+  } else {
+    statusButton = `<button type="button" class="btn-arrive" onclick="event.stopPropagation(); openStatusModal('${appt.id}')" title="Atualizar Status"><i data-lucide="help-circle"></i> Status</button>`;
+  }
+
+  return `
+    <div class="client-card appt-card" data-id="${appt.id}" data-type="appointment">
+      ${avatarHtml}
+      <div class="card-content">
+        <div class="cell-client-name">${escapeHtml(client.name)}</div>
+        <div class="cell-phone">${escapeHtml(client.phone)}</div>
+        <div class="cell-cpf" style="font-size:0.8rem;color:var(--text-muted)">${client.cpf ? escapeHtml(client.cpf) : '—'}</div>
+        <div class="procedure-badge" style="margin-top:0.25rem;">${escapeHtml(appt.type)}</div>
+        <div class="cell-datetime" style="margin-top:0.25rem;">${dateDisplay} às ${appt.time}</div>
+        <div class="reminder-status" style="margin-top:0.25rem;">${reminderStatus}</div>
+        <div class="card-footer" style="display:flex; justify-content:space-between; align-items:center; margin-top:auto; gap:0.5rem; flex-wrap:wrap; padding-top:0.5rem;">
+          <div class="status-badge ${statusClass}">${statusLabel}</div>
+          ${statusButton}
+        </div>
+      </div>
+    </div>`;
 }
 
-function renderTodayTimeline() {
-  const container = document.getElementById('today-timeline-container');
+// ─── Status Selection Modal Logic ──────────────────────────────────────────
+
+function openStatusModal(apptId) {
+  const appt = appointments.find(a => a.id === apptId);
+  if (!appt) return;
+
+  document.getElementById('status-modal-appt-id').value = apptId;
+
+  document.querySelectorAll('.btn-status-select').forEach(btn => btn.style.border = '2px solid transparent');
+  
+  const currentStatus = appt.status || 'esperando';
+  let activeBtn = null;
+  if (currentStatus === 'esperando') {
+    activeBtn = document.getElementById('btn-status-waiting');
+  } else if (currentStatus === 'chegou') {
+    activeBtn = document.getElementById('btn-status-arrived');
+  } else if (currentStatus === 'não veio') {
+    activeBtn = document.getElementById('btn-status-noshow');
+  }
+
+  if (activeBtn) {
+    activeBtn.style.border = '2px solid var(--accent-primary)';
+  }
+
+  document.getElementById('status-modal').classList.add('active');
+}
+
+function closeStatusModal() {
+  document.getElementById('status-modal').classList.remove('active');
+}
+
+function selectStatus(statusVal) {
+  const apptId = document.getElementById('status-modal-appt-id').value;
+  const appt = appointments.find(a => a.id === apptId);
+  if (!appt) return;
+
+  appt.status = statusVal;
+  saveAppointments();
+  closeStatusModal();
+  renderAll();
+  
+  const client = clientsRegistry.find(c => c.id === appt.clientId);
+  const clientName = client ? client.name : 'Cliente';
+  showToast('🔄 Status Atualizado', `${clientName} marcado como ${statusVal}.`);
+}
+
+// ─── Client Registry Table & Cards ─────────────────────────────────────────
+
+function renderClientsTable(filtered) {
+  const container = document.getElementById('all-clients-grid');
   if (!container) return;
 
-  const today = new Date();
-  const yyyy = today.getFullYear();
-  const mm = String(today.getMonth() + 1).padStart(2, '0');
-  const dd = String(today.getDate()).padStart(2, '0');
-  const todayStr = `${yyyy}-${mm}-${dd}`;
-
-  const todayClients = clients.filter(c => c.date === todayStr);
-  const defaultHours = ["08:00", "09:00", "10:00", "11:00", "12:00", "13:00", "14:00", "15:00", "16:00", "17:00", "18:00", "19:00"];
-  const occupiedTimes = todayClients.map(c => c.time);
-  
-  const allTimes = Array.from(new Set([...defaultHours, ...occupiedTimes])).sort();
-
-  let html = '';
-  allTimes.forEach(time => {
-    const clientsAtTime = todayClients.filter(c => c.time === time);
-    
-    html += `<div class="timeline-row">
-      <div class="timeline-time">${time}</div>
-      <div class="timeline-slot-content">`;
-      
-    if (clientsAtTime.length > 0) {
-      // Group them inside a horizontal row or vertical list
-      html += `<div class="client-grid">`;
-      clientsAtTime.forEach(c => {
-        html += buildCard(c, true);
-      });
-      html += `</div>`;
-    } else {
-      html += `
-        <div class="timeline-free-slot" onclick="openClientModalToday('${time}')">
-          <i data-lucide="plus-circle"></i>
-          <span>Horário Disponível — Clique para encaixar</span>
-        </div>`;
-    }
-    
-    html += `</div></div>`;
-  });
-
-  container.innerHTML = html;
-  lucide.createIcons();
-}
-
-function renderAllClientsTable(filtered) {
-  const container = document.getElementById('all-clients-grid');
-
-  const list = filtered !== undefined ? filtered : clients;
+  const list = filtered !== undefined ? filtered : clientsRegistry;
 
   if (list.length === 0) {
     container.innerHTML = `<div class="empty-state" style="padding:2rem">
@@ -410,105 +736,276 @@ function renderAllClientsTable(filtered) {
     return;
   }
 
-  container.innerHTML = list.map(c => buildCard(c, true)).join('');
+  sortClientsByName(list);
+
+  container.innerHTML = list.map(c => buildClientCard(c)).join('');
   lucide.createIcons();
 }
 
-function buildCard(client, showCpf) {
-  const diff = daysDiff(parseLocalDateTime(client.date, client.time));
-  const dateDisplay = formatDateDisplay(client.date);
-  const statusClass = client.status === 'canceled' ? 'badge-canceled' : 'badge-confirmed';
-  const statusLabel = client.status === 'canceled' ? 'Cancelado' : 'Confirmado';
-
-  let reminderStatus;
-  if (client.status === 'canceled') {
-    reminderStatus = `<span class="badge badge-canceled">Cancelado</span>`;
-  } else if (diff < 0) {
-    reminderStatus = `<span style="font-size:0.8rem;color:var(--text-muted)">Realizada</span>`;
-  } else if (diff === 0) {
-    reminderStatus = client.notifiedToday
-      ? `<span class="reminder-ok"><i data-lucide="check-circle-2"></i> Avisado Hoje</span>`
-      : `<span class="reminder-warning reminder-urgent">⚡ Avisar HOJE!</span>`;
-  } else if (diff === 1) {
-    reminderStatus = client.notifiedTomorrow
-      ? `<span class="reminder-ok"><i data-lucide="check-circle-2"></i> Avisado 1d</span>`
-      : `<span class="reminder-warning">⚠ Avisar Amanhã</span>`;
-  } else {
-    reminderStatus = `<span style="font-size:0.8rem;color:var(--text-muted)">Em ${diff} dias</span>`;
-  }
-
-  const cpfCell = showCpf
-    ? `<div class="cell-cpf">${client.cpf ? escapeHtml(client.cpf) : '<span style="color:var(--text-muted)">—</span>'}</div>`
-    : '';
-
+function buildClientCard(client) {
   const theme = document.documentElement.getAttribute('data-theme');
   const avatarHtml = theme === 'helo'
     ? `<div class="card-emote" title="Emote">🦷</div>`
     : '';
 
-  const arriveButton = client.arrived
-    ? `<button type="button" class="btn-arrive arrived" onclick="event.stopPropagation(); toggleArrived('${client.id}')" title="Desmarcar Chegada"><i data-lucide="check-check"></i> Chegou!</button>`
-    : `<button type="button" class="btn-arrive" onclick="event.stopPropagation(); toggleArrived('${client.id}')" title="Marcar Chegada"><i data-lucide="check"></i> Chegou</button>`;
-
-  const arrivedTag = client.arrived
-    ? `<span class="arrived-tag">(Esse já foi)</span>`
-    : '';
-
-  const arrivedClass = client.arrived ? 'arrived' : '';
+  const clientAppts = appointments.filter(a => a.clientId === client.id);
+  const totalAppts = clientAppts.length;
+  const activeAppts = clientAppts.filter(a => a.status === 'esperando').length;
 
   return `
-    <div class="client-card ${arrivedClass}" data-id="${client.id}">
+    <div class="client-card client-profile-card" data-id="${client.id}" data-type="client" style="border-left: 3px solid var(--accent-secondary);">
       ${avatarHtml}
       <div class="card-content">
-        <div class="cell-client-name">${escapeHtml(client.name)} ${arrivedTag}</div>
+        <div class="cell-client-name">${escapeHtml(client.name)}</div>
         <div class="cell-phone">${escapeHtml(client.phone)}</div>
-        ${cpfCell}
-        <div class="procedure-badge">${escapeHtml(client.type)}</div>
-        <div class="cell-datetime">${dateDisplay} às ${client.time}</div>
-        <div class="reminder-status">${reminderStatus}</div>
-        <div class="card-footer" style="display:flex; justify-content:space-between; align-items:center; margin-top:auto; gap:0.5rem; flex-wrap:wrap;">
-          <div class="status-badge ${statusClass}">${statusLabel}</div>
-          ${arriveButton}
+        <div class="cell-cpf" style="font-size:0.8rem;color:var(--text-muted)">CPF: ${client.cpf ? escapeHtml(client.cpf) : '—'}</div>
+        <div style="font-size:0.75rem;color:var(--text-secondary);margin-top:0.5rem;font-weight:600;">
+          📌 ${totalAppts} consultas no total (${activeAppts} ativas)
+        </div>
+        <div class="card-footer" style="display:flex; justify-content:flex-end; align-items:center; margin-top:auto; gap:0.5rem; padding-top:0.5rem;">
+          <button type="button" class="btn btn-secondary" onclick="event.stopPropagation(); openClientEditModal('${client.id}')" style="padding:0.35rem 0.65rem;font-size:0.75rem;">
+            <i data-lucide="pencil" style="width:12px;height:12px;"></i> Editar
+          </button>
+          <button type="button" class="btn btn-secondary" onclick="event.stopPropagation(); deleteClientProfile('${client.id}')" style="padding:0.35rem 0.65rem;font-size:0.75rem;color:#dc2626;">
+            <i data-lucide="trash-2" style="width:12px;height:12px;"></i> Excluir
+          </button>
         </div>
       </div>
     </div>`;
 }
 
+function filterClients() {
+  const search = document.getElementById('client-search').value.toLowerCase().trim();
+  let filtered = [...clientsRegistry];
+
+  if (search) {
+    filtered = filtered.filter(c =>
+      c.name.toLowerCase().includes(search) ||
+      c.phone.includes(search) ||
+      (c.cpf && c.cpf.includes(search))
+    );
+  }
+
+  renderClientsTable(filtered);
+}
+
+// ─── Client Search & Selection Modal for Appointment Booking ────────────────
+
+function openClientSearchModal() {
+  document.getElementById('modal-client-search').value = '';
+  filterModalClients();
+  document.getElementById('client-search-modal').classList.add('active');
+}
+
+function closeClientSearchModal() {
+  document.getElementById('client-search-modal').classList.remove('active');
+}
+
+function filterModalClients() {
+  const query = document.getElementById('modal-client-search').value.toLowerCase().trim();
+  const container = document.getElementById('modal-clients-list-container');
+  if (!container) return;
+
+  let filtered = [...clientsRegistry];
+  if (query) {
+    filtered = filtered.filter(c => 
+      c.name.toLowerCase().includes(query) || 
+      c.phone.includes(query) || 
+      (c.cpf && c.cpf.includes(query))
+    );
+  }
+
+  if (filtered.length === 0) {
+    container.innerHTML = `<div style="padding:1rem;text-align:center;color:var(--text-muted);font-size:0.85rem;">Nenhum cliente cadastrado.</div>`;
+    return;
+  }
+
+  container.innerHTML = filtered.map(c => `
+    <div class="modal-client-item">
+      <div class="modal-client-details">
+        <span class="modal-client-name">${escapeHtml(c.name)}</span>
+        <span class="modal-client-sub">Tel: ${escapeHtml(c.phone)} ${c.cpf ? `• CPF: ${escapeHtml(c.cpf)}` : ''}</span>
+      </div>
+      <button type="button" class="btn btn-secondary btn-select-client" onclick="selectClientForAppointment('${c.id}')">Selecionar</button>
+    </div>
+  `).join('');
+}
+
+function selectClientForAppointment(clientId) {
+  const client = clientsRegistry.find(c => c.id === clientId);
+  if (!client) return;
+
+  document.getElementById('appt-client-id').value = client.id;
+  document.getElementById('appt-client-name').value = client.name;
+  
+  document.getElementById('appt-client-phone-label').textContent = client.phone;
+  document.getElementById('appt-client-cpf-label').textContent = client.cpf || 'Não Informado';
+  document.getElementById('appt-client-details-row').style.display = 'block';
+
+  closeClientSearchModal();
+}
+
+// ─── History Tab Render & Filters ───────────────────────────────────────────
+
+function renderHistoryTable(filtered) {
+  const container = document.getElementById('history-grid');
+  if (!container) return;
+
+  let list = [];
+  if (filtered !== undefined) {
+    list = filtered;
+  } else {
+    const todayStr = getTodayDateStr();
+    list = appointments.filter(a => {
+      if (a.status === 'canceled') return true;
+      if ((a.status === 'chegou' || a.status === 'não veio') && a.date < todayStr) return true;
+      return false;
+    });
+  }
+
+  list.sort((a, b) => {
+    const da = parseLocalDateTime(a.date, a.time);
+    const db = parseLocalDateTime(b.date, b.time);
+    return db - da;
+  });
+
+  if (list.length === 0) {
+    container.innerHTML = `<div class="empty-state" style="padding:2rem">
+      <i data-lucide="history"></i>
+      <p>Nenhum registro encontrado no histórico.</p>
+    </div>`;
+    lucide.createIcons();
+    return;
+  }
+
+  container.innerHTML = list.map(a => buildHistoryCard(a)).join('');
+  lucide.createIcons();
+}
+
+function buildHistoryCard(appt) {
+  const client = clientsRegistry.find(c => c.id === appt.clientId) || {
+    name: 'Cliente Não Encontrado',
+    phone: '',
+    cpf: ''
+  };
+
+  const dateDisplay = formatDateDisplay(appt.date);
+  
+  let statusClass = 'badge-confirmed';
+  let statusLabel = 'Confirmado';
+  if (appt.status === 'canceled') {
+    statusClass = 'badge-canceled';
+    statusLabel = 'Cancelado';
+  } else if (appt.status === 'chegou') {
+    statusClass = 'badge-confirmed';
+    statusLabel = 'Chegou';
+  } else if (appt.status === 'não veio') {
+    statusClass = 'badge-canceled';
+    statusLabel = 'Não Veio';
+  }
+
+  let statusText = '';
+  if (appt.status === 'chegou') {
+    statusText = `<span style="font-size:0.8rem;color:#16a34a;font-weight:700;">✅ Compareceu</span>`;
+  } else if (appt.status === 'não veio') {
+    statusText = `<span style="font-size:0.8rem;color:#dc2626;font-weight:700;">❌ Faltou</span>`;
+  } else if (appt.status === 'canceled') {
+    statusText = `<span style="font-size:0.8rem;color:#7c3aed;font-weight:700;">💜 Cancelado</span>`;
+  }
+
+  return `
+    <div class="client-card history-card" data-id="${appt.id}" data-type="appointment" style="opacity: 0.85; border-left: 3px solid var(--text-muted);">
+      <div class="card-content">
+        <div class="cell-client-name">${escapeHtml(client.name)}</div>
+        <div class="cell-phone">${escapeHtml(client.phone)}</div>
+        <div class="procedure-badge" style="margin-top:0.25rem;">${escapeHtml(appt.type)}</div>
+        <div class="cell-datetime" style="margin-top:0.25rem;">${dateDisplay} às ${appt.time}</div>
+        <div style="margin-top:0.5rem; display:flex; justify-content:space-between; align-items:center;">
+          <div class="status-badge ${statusClass}">${statusLabel}</div>
+          ${statusText}
+        </div>
+      </div>
+    </div>`;
+}
+
+function filterHistory() {
+  const search = document.getElementById('history-search').value.toLowerCase().trim();
+  const filterStatus = document.getElementById('filter-history-status').value;
+  const todayStr = getTodayDateStr();
+
+  let filtered = appointments.filter(a => {
+    if (a.status === 'canceled') return true;
+    if ((a.status === 'chegou' || a.status === 'não veio') && a.date < todayStr) return true;
+    return false;
+  });
+
+  if (search) {
+    filtered = filtered.filter(a => {
+      const client = clientsRegistry.find(c => c.id === a.clientId);
+      return client && client.name.toLowerCase().includes(search);
+    });
+  }
+
+  if (filterStatus !== 'all') {
+    filtered = filtered.filter(a => a.status === filterStatus);
+  }
+
+  renderHistoryTable(filtered);
+}
 
 // ─── Custom Floating Context Menu ───────────────────────────────────────────
 
 function attachContextMenuEvents() {
-  // Attach context menu to each client card
   document.querySelectorAll('.client-card').forEach(card => {
     card.addEventListener('contextmenu', function (e) {
       e.preventDefault();
 
-      const clientId = this.getAttribute('data-id');
-      const client = clients.find(c => c.id === clientId);
-      if (!client) return;
+      const itemId = this.getAttribute('data-id');
+      const itemType = this.getAttribute('data-type') || 'appointment';
 
-      activeClientIdForCtx = clientId;
+      activeItemIdForCtx = itemId;
+      activeItemTypeForCtx = itemType;
 
-      document.getElementById('ctx-client-name').textContent = client.name;
-      document.getElementById('ctx-client-info').textContent = `${client.type} • ${formatDateDisplay(client.date)} às ${client.time}`;
+      const menu = document.getElementById('context-menu');
+      if (!menu) return;
 
       const cancelLi = document.getElementById('ctx-cancel-li');
-      if (client.status === 'canceled') {
-        cancelLi.innerHTML = '<i data-lucide="refresh-cw"></i><span>Reativar Agendamento</span>';
-      } else {
-        cancelLi.innerHTML = '<i data-lucide="x-circle"></i><span>Cancelar Agendamento</span>';
-      }
-
       const wppLi = document.getElementById('ctx-wpp-li');
-      if (needsReminder(client)) {
-        wppLi.style.fontWeight = '800';
+
+      if (itemType === 'appointment') {
+        const appt = appointments.find(a => a.id === itemId);
+        if (!appt) return;
+        const client = clientsRegistry.find(c => c.id === appt.clientId) || { name: 'Desconhecido' };
+
+        document.getElementById('ctx-client-name').textContent = client.name;
+        document.getElementById('ctx-client-info').textContent = `${appt.type} • ${formatDateDisplay(appt.date)} às ${appt.time}`;
+
+        cancelLi.style.display = 'flex';
+        if (appt.status === 'canceled') {
+          cancelLi.innerHTML = '<i data-lucide="refresh-cw"></i><span>Reativar Consulta</span>';
+        } else {
+          cancelLi.innerHTML = '<i data-lucide="x-circle"></i><span>Cancelar Consulta</span>';
+        }
+
+        wppLi.style.display = 'flex';
+        if (needsReminder(appt)) {
+          wppLi.style.fontWeight = '800';
+        } else {
+          wppLi.style.fontWeight = '600';
+        }
       } else {
-        wppLi.style.fontWeight = '600';
+        const client = clientsRegistry.find(c => c.id === itemId);
+        if (!client) return;
+
+        document.getElementById('ctx-client-name').textContent = client.name;
+        document.getElementById('ctx-client-info').textContent = `Dados do Cliente • Tel: ${client.phone}`;
+
+        wppLi.style.display = 'none';
+        cancelLi.style.display = 'none';
       }
 
       lucide.createIcons();
 
-      const menu = document.getElementById('context-menu');
       const menuWidth = 220;
       const menuHeight = 175;
       let top = e.pageY;
@@ -528,8 +1025,6 @@ function attachContextMenuEvents() {
   });
 }
 
-
-
 document.addEventListener('click', function (e) {
   const menu = document.getElementById('context-menu');
   if (menu && !menu.contains(e.target)) {
@@ -545,73 +1040,53 @@ window.addEventListener('scroll', function () {
 // ─── Trigger Context Actions ────────────────────────────────────────────────
 
 function triggerCtxWhatsapp() {
-  if (!activeClientIdForCtx) return;
-  contactClient(activeClientIdForCtx);
+  if (!activeItemIdForCtx || activeItemTypeForCtx !== 'appointment') return;
+  contactClient(activeItemIdForCtx);
   document.getElementById('context-menu').classList.remove('active');
 }
 
 function triggerCtxEdit() {
-  if (!activeClientIdForCtx) return;
-  openEditModal(activeClientIdForCtx);
+  if (!activeItemIdForCtx) return;
+  if (activeItemTypeForCtx === 'appointment') {
+    openAppointmentEditModal(activeItemIdForCtx);
+  } else {
+    openClientEditModal(activeItemIdForCtx);
+  }
   document.getElementById('context-menu').classList.remove('active');
 }
 
 function triggerCtxCancel() {
-  if (!activeClientIdForCtx) return;
-  cancelClient(activeClientIdForCtx);
+  if (!activeItemIdForCtx || activeItemTypeForCtx !== 'appointment') return;
+  cancelAppointment(activeItemIdForCtx);
   document.getElementById('context-menu').classList.remove('active');
 }
 
 function triggerCtxDelete() {
-  if (!activeClientIdForCtx) return;
-  deleteClient(activeClientIdForCtx);
+  if (!activeItemIdForCtx) return;
+  if (activeItemTypeForCtx === 'appointment') {
+    deleteAppointment(activeItemIdForCtx);
+  } else {
+    deleteClientProfile(activeItemIdForCtx);
+  }
   document.getElementById('context-menu').classList.remove('active');
-}
-
-// ─── Filter & Sort Clients ──────────────────────────────────────────────────
-
-function filterClients() {
-  const search = document.getElementById('client-search').value.toLowerCase().trim();
-  const status = document.getElementById('filter-status').value;
-  const timeframe = document.getElementById('filter-timeframe').value;
-
-  let filtered = [...clients];
-
-  if (search) {
-    filtered = filtered.filter(c =>
-      c.name.toLowerCase().includes(search) ||
-      c.phone.includes(search) ||
-      (c.cpf && c.cpf.includes(search))
-    );
-  }
-
-  if (status !== 'all') {
-    filtered = filtered.filter(c => c.status === status);
-  }
-
-  if (timeframe !== 'all') {
-    filtered = filtered.filter(c => {
-      const diff = daysDiff(parseLocalDateTime(c.date, c.time));
-      if (timeframe === 'today') return diff === 0;
-      if (timeframe === 'tomorrow') return diff === 1;
-      if (timeframe === 'upcoming') return diff > 1 && diff <= 60;
-      if (timeframe === 'past') return diff < 0;
-      return true;
-    });
-  }
-
-  filtered = sortChronologically(filtered);
-  renderAllClientsTable(filtered);
 }
 
 // ─── Render All ─────────────────────────────────────────────────────────────
 
 function renderAll() {
-  clients = sortChronologically(clients);
+  appointments = sortAppointments(appointments);
   updateStats();
-  renderUpcomingTable();
-  renderTodayTimeline();
-  filterClients();
+  
+  if (currentTab === 'dashboard') {
+    renderDashboardAppointments();
+  } else if (currentTab === 'calendar') {
+    renderCalendar();
+  } else if (currentTab === 'clients') {
+    renderClientsTable();
+  } else if (currentTab === 'history') {
+    renderHistoryTable();
+  }
+  
   attachContextMenuEvents();
   updateGreeting();
   lucide.createIcons();
@@ -621,87 +1096,169 @@ function renderAll() {
 
 function openClientModal() {
   const modal = document.getElementById('client-modal');
-  document.getElementById('modal-title').innerHTML = '<i data-lucide="user-plus"></i> Novo Cliente';
+  document.getElementById('client-modal-title').innerHTML = '<i data-lucide="user-plus"></i> Novo Cliente';
   document.getElementById('client-form').reset();
-  document.getElementById('client-id').value = '';
-
-  const today = new Date();
-  const yyyy = today.getFullYear();
-  const mm = String(today.getMonth() + 1).padStart(2, '0');
-  const dd = String(today.getDate()).padStart(2, '0');
-  document.getElementById('client-date').value = `${yyyy}-${mm}-${dd}`;
-  document.getElementById('client-time').value = '09:00';
+  document.getElementById('profile-client-id').value = '';
 
   modal.classList.add('active');
   lucide.createIcons();
 
-  setTimeout(() => document.getElementById('client-name').focus(), 100);
+  setTimeout(() => document.getElementById('profile-client-name').focus(), 100);
 }
 
 function closeClientModal() {
   document.getElementById('client-modal').classList.remove('active');
 }
 
-function openEditModal(clientId) {
-  const client = clients.find(c => c.id === clientId);
+function openClientEditModal(clientId) {
+  const client = clientsRegistry.find(c => c.id === clientId);
   if (!client) return;
 
-  document.getElementById('modal-title').innerHTML = '<i data-lucide="pencil"></i> Editar Cliente';
-  document.getElementById('client-id').value = client.id;
-  document.getElementById('client-name').value = client.name;
-  document.getElementById('client-phone').value = client.phone;
-  document.getElementById('client-cpf').value = client.cpf || '';
-  
-  // --- INÍCIO DA PARTE ALTERADA ---
-  const selectType = document.getElementById('client-type');
-  const inputOutro = document.getElementById('outro-procedimento');
-  const containerOutro = document.getElementById('container-outro-procedimento');
-
-  // Tenta selecionar o procedimento no select
-  selectType.value = client.type;
-
-  // Se o valor não bate com nenhuma opção do select, significa que é um procedimento "Outros"
-  if (selectType.value === "" && client.type !== "") { 
-      selectType.value = "Outros";
-      containerOutro.style.display = 'block';
-      inputOutro.value = client.type;
-  } else {
-      containerOutro.style.display = 'none';
-      inputOutro.value = '';
-  }
-  // --- FIM DA PARTE ALTERADA ---
-
-  document.getElementById('client-date').value = client.date;
-  document.getElementById('client-time').value = client.time;
-  document.getElementById('client-status').value = client.status;
+  document.getElementById('client-modal-title').innerHTML = '<i data-lucide="pencil"></i> Editar Dados do Cliente';
+  document.getElementById('profile-client-id').value = client.id;
+  document.getElementById('profile-client-name').value = client.name;
+  document.getElementById('profile-client-phone').value = client.phone;
+  document.getElementById('profile-client-cpf').value = client.cpf || '';
 
   document.getElementById('client-modal').classList.add('active');
   lucide.createIcons();
 
-  setTimeout(() => document.getElementById('client-name').focus(), 100);
+  setTimeout(() => document.getElementById('profile-client-name').focus(), 100);
 }
 
-function saveClient(event) {
+function saveClientProfile(event) {
   event.preventDefault();
 
-  const id = document.getElementById('client-id').value;
-  const name = document.getElementById('client-name').value.trim();
-  const phone = document.getElementById('client-phone').value.trim();
-  const cpf = document.getElementById('client-cpf').value.trim();
-  
-  // Captura o valor inicial do select
-  let type = document.getElementById('client-type').value;
-  
-  // REGRA NOVA: Se for "Outros", captura o valor digitado no input de texto
-  if (type === 'Outros') {
-    type = document.getElementById('outro-procedimento').value.trim();
+  const id = document.getElementById('profile-client-id').value;
+  const name = document.getElementById('profile-client-name').value.trim();
+  const phone = document.getElementById('profile-client-phone').value.trim();
+  const cpf = document.getElementById('profile-client-cpf').value.trim();
+
+  if (id) {
+    const idx = clientsRegistry.findIndex(c => c.id === id);
+    if (idx !== -1) {
+      clientsRegistry[idx] = {
+        ...clientsRegistry[idx],
+        name,
+        phone,
+        cpf
+      };
+    }
+  } else {
+    clientsRegistry.push({
+      id: generateId(),
+      name,
+      phone,
+      cpf,
+      createdAt: new Date().toISOString()
+    });
   }
 
-  const date = document.getElementById('client-date').value;
-  const time = document.getElementById('client-time').value;
-  const status = document.getElementById('client-status').value;
+  saveClientsRegistry();
+  closeClientModal();
+  renderAll();
 
-  // Validação extra para garantir que o usuário digitou algo em "Outros"
+  showToast('💾 Salvo com sucesso', `Dados do cliente ${name} foram salvos.`);
+}
+
+function deleteClientProfile(clientId) {
+  const client = clientsRegistry.find(c => c.id === clientId);
+  if (!client) return;
+
+  const clientAppts = appointments.filter(a => a.clientId === clientId);
+  if (clientAppts.length > 0) {
+    if (!confirm(`Remover "${client.name}" irá deletar todas as ${clientAppts.length} consultas associadas a ele. Prosseguir?`)) return;
+    appointments = appointments.filter(a => a.clientId !== clientId);
+    saveAppointments();
+  } else {
+    if (!confirm(`Remover definitivamente "${client.name}" do sistema?`)) return;
+  }
+
+  clientsRegistry = clientsRegistry.filter(c => c.id !== clientId);
+  saveClientsRegistry();
+  renderAll();
+  showToast('🗑️ Cliente Excluído', `${client.name} foi removido.`);
+}
+
+// ─── Appointment Booking Operations ─────────────────────────────────────────
+
+function openAppointmentModal(prefilledTime = '09:00', prefilledDate = null) {
+  const modal = document.getElementById('appointment-modal');
+  document.getElementById('appt-modal-title').innerHTML = '<i data-lucide="calendar-plus"></i> Nova Consulta';
+  document.getElementById('appointment-form').reset();
+  document.getElementById('appt-id').value = '';
+  document.getElementById('appt-client-id').value = '';
+  document.getElementById('appt-client-details-row').style.display = 'none';
+
+  const dateValue = prefilledDate || dashboardSelectedDate || getTodayDateStr();
+  document.getElementById('appt-date').value = dateValue;
+  document.getElementById('appt-time').value = prefilledTime;
+  document.getElementById('appt-status').value = 'esperando';
+
+  modal.classList.add('active');
+  lucide.createIcons();
+}
+
+function closeAppointmentModal() {
+  document.getElementById('appointment-modal').classList.remove('active');
+}
+
+function openAppointmentEditModal(apptId) {
+  const appt = appointments.find(a => a.id === apptId);
+  if (!appt) return;
+
+  const client = clientsRegistry.find(c => c.id === appt.clientId);
+  if (!client) return;
+
+  document.getElementById('appt-modal-title').innerHTML = '<i data-lucide="pencil"></i> Editar Consulta';
+  document.getElementById('appt-id').value = appt.id;
+  document.getElementById('appt-client-id').value = appt.clientId;
+  document.getElementById('appt-client-name').value = client.name;
+  
+  document.getElementById('appt-client-phone-label').textContent = client.phone;
+  document.getElementById('appt-client-cpf-label').textContent = client.cpf || 'Não Informado';
+  document.getElementById('appt-client-details-row').style.display = 'block';
+
+  const select = document.getElementById('appt-type');
+  const optionExists = Array.from(select.options).some(opt => opt.value === appt.type);
+  
+  if (optionExists) {
+    select.value = appt.type;
+    document.getElementById('container-outro-procedimento-appt').style.display = 'none';
+    document.getElementById('outro-procedimento-appt').required = false;
+    document.getElementById('outro-procedimento-appt').value = '';
+  } else {
+    select.value = 'Outros';
+    document.getElementById('container-outro-procedimento-appt').style.display = 'block';
+    document.getElementById('outro-procedimento-appt').required = true;
+    document.getElementById('outro-procedimento-appt').value = appt.type;
+  }
+
+  document.getElementById('appt-date').value = appt.date;
+  document.getElementById('appt-time').value = appt.time;
+  document.getElementById('appt-status').value = appt.status || 'esperando';
+
+  document.getElementById('appointment-modal').classList.add('active');
+  lucide.createIcons();
+}
+
+function saveAppointment(event) {
+  event.preventDefault();
+
+  const id = document.getElementById('appt-id').value;
+  const clientId = document.getElementById('appt-client-id').value;
+  let type = document.getElementById('appt-type').value;
+  if (type === 'Outros') {
+    type = document.getElementById('outro-procedimento-appt').value.trim();
+  }
+  const date = document.getElementById('appt-date').value;
+  const time = document.getElementById('appt-time').value;
+  const status = document.getElementById('appt-status').value;
+
+  if (!clientId) {
+    showToast('⚠ Erro', 'Por favor, selecione um cliente.');
+    return;
+  }
   if (!type) {
     showToast('⚠ Erro', 'Por favor, especifique o procedimento.');
     return;
@@ -710,24 +1267,25 @@ function saveClient(event) {
   const appointmentDate = parseLocalDateTime(date, time);
   const now = new Date();
   const diffMs = now - appointmentDate;
-  const maxPastMs = 4 * 60 * 60 * 1000; // 4 hours in milliseconds
+  const maxPastMs = 4 * 60 * 60 * 1000;
   if (diffMs > maxPastMs) {
     showToast('⚠ Horário Passado', 'Não é permitido agendar mais de 4 horas após o horário.');
     return;
   }
 
+  const client = clientsRegistry.find(c => c.id === clientId);
+  const clientName = client ? client.name : 'Cliente';
+
   if (id) {
-    const idx = clients.findIndex(c => c.id === id);
+    const idx = appointments.findIndex(a => a.id === id);
     if (idx !== -1) {
-      const existing = clients[idx];
+      const existing = appointments[idx];
       const dateChanged = existing.date !== date || existing.time !== time;
 
-      clients[idx] = {
+      appointments[idx] = {
         ...existing,
-        name,
-        phone,
-        cpf,
-        type, // Salva o procedimento (padrão ou o digitado em "Outros")
+        clientId,
+        type,
         date,
         time,
         status,
@@ -736,12 +1294,10 @@ function saveClient(event) {
       };
     }
   } else {
-    clients.push({
+    appointments.push({
       id: generateId(),
-      name,
-      phone,
-      cpf,
-      type, // Salva o procedimento (padrão ou o digitado em "Outros")
+      clientId,
+      type,
       date,
       time,
       status,
@@ -751,50 +1307,62 @@ function saveClient(event) {
     });
   }
 
-  clients = sortChronologically(clients);
-  saveClients();
-  closeClientModal();
+  appointments = sortAppointments(appointments);
+  saveAppointments();
+  closeAppointmentModal();
   renderAll();
 
-  showToast('💾 Salvo com sucesso', `${name} agora esta na lista.`);
+  showToast('💾 Salvo com sucesso', `Consulta de ${clientName} salva.`);
 }
 
-function deleteClient(clientId) {
-  const client = clients.find(c => c.id === clientId);
-  if (!client) return;
+function cancelAppointment(apptId) {
+  const appt = appointments.find(a => a.id === apptId);
+  if (!appt) return;
 
-  if (!confirm(`Remover definitivamente "${client.name}" do sistema?`)) return;
+  const client = clientsRegistry.find(c => c.id === appt.clientId);
+  const clientName = client ? client.name : 'Cliente';
 
-  clients = clients.filter(c => c.id !== clientId);
-  saveClients();
-  renderAll();
-  showToast('🗑️ Cliente Excluido', `${client.name} foi removido.`);
-}
-
-function cancelClient(clientId) {
-  const client = clients.find(c => c.id === clientId);
-  if (!client) return;
-
-  if (client.status === 'canceled') {
-    client.status = 'confirmed';
-    showToast('✅ Consulta Ativada', `Consulta de ${client.name} esta ativa.`);
+  if (appt.status === 'canceled') {
+    appt.status = 'esperando';
+    showToast('✅ Consulta Reativada', `Consulta de ${clientName} está ativa.`);
   } else {
-    client.status = 'canceled';
-    showToast('❌ Consulta Cancelada', `Consulta de ${client.name} foi cancelada.`);
+    appt.status = 'canceled';
+    showToast('❌ Consulta Cancelada', `Consulta de ${clientName} foi cancelada.`);
   }
 
-  saveClients();
+  saveAppointments();
   renderAll();
+}
+
+function deleteAppointment(apptId) {
+  const appt = appointments.find(a => a.id === apptId);
+  if (!appt) return;
+
+  const client = clientsRegistry.find(c => c.id === appt.clientId);
+  const clientName = client ? client.name : 'Cliente';
+
+  if (!confirm(`Remover definitivamente a consulta de "${clientName}"?`)) return;
+
+  appointments = appointments.filter(a => a.id !== apptId);
+  saveAppointments();
+  renderAll();
+  showToast('🗑️ Consulta Excluída', `Consulta de ${clientName} foi removida.`);
+}
+
+function getTodayDateStr() {
+  const today = new Date();
+  const yyyy = today.getFullYear();
+  const mm = String(today.getMonth() + 1).padStart(2, '0');
+  const dd = String(today.getDate()).padStart(2, '0');
+  return `${yyyy}-${mm}-${dd}`;
 }
 
 // ─── Tab Navigation ─────────────────────────────────────────────────────────
 
 function switchTab(tabName) {
-  // Reset active tabs & nav items
   document.querySelectorAll('.app-tab').forEach(t => t.classList.remove('active'));
   document.querySelectorAll('.sidebar-nav li').forEach(li => li.classList.remove('active'));
 
-  // Pause active game if switching out of games tab
   if (tabName !== 'games') {
     stopGameLoop();
   }
@@ -803,14 +1371,39 @@ function switchTab(tabName) {
   const navItem = document.getElementById(`nav-${tabName}`);
   if (navItem) navItem.classList.add('active');
 
+  currentTab = tabName;
+  updateTopBarButton();
   renderAll();
 
-  // If entering games tab, make sure the currently selected game is ready
   if (tabName === 'games') {
     initGameEngine();
   }
 
   return false;
+}
+
+function handleTopBarAction() {
+  if (currentTab === 'dashboard') {
+    openAppointmentModal();
+  } else if (currentTab === 'clients') {
+    openClientModal();
+  }
+}
+
+function updateTopBarButton() {
+  const btn = document.getElementById('btn-top-action');
+  const btnText = document.getElementById('btn-top-action-text');
+  if (!btn || !btnText) return;
+
+  if (currentTab === 'dashboard') {
+    btn.style.display = 'inline-flex';
+    btnText.textContent = 'Adicionar Consulta';
+  } else if (currentTab === 'clients') {
+    btn.style.display = 'inline-flex';
+    btnText.textContent = 'Adicionar Cliente';
+  } else {
+    btn.style.display = 'none';
+  }
 }
 
 // ─── Greeting & Date ────────────────────────────────────────────────────────
@@ -821,7 +1414,7 @@ function updateGreeting() {
   const dateStr = now.toLocaleDateString('pt-BR', { weekday: 'long', day: '2-digit', month: 'long' });
 
   document.getElementById('greeting-title').textContent = `${greeting}, Helo! 👋`;
-  document.getElementById('greeting-subtitle').textContent = `${capitalize(dateStr)} • Lista organizada por horario.`;
+  document.getElementById('greeting-subtitle').textContent = `${capitalize(dateStr)} • Organizado por data e horário.`;
 }
 
 function capitalize(str) {
@@ -837,7 +1430,6 @@ function setTheme(theme) {
   document.querySelectorAll('.theme-btn').forEach(btn => btn.classList.remove('active'));
   document.getElementById(`btn-theme-${theme}`).classList.add('active');
 
-  // Helo theme special Joguinhos Nav link unlock
   const gamesNav = document.getElementById('nav-games');
   if (theme === 'helo') {
     startSparkles();
@@ -851,7 +1443,6 @@ function setTheme(theme) {
     if (gamesNav) {
       gamesNav.style.display = 'none';
     }
-    // If the active tab was games, switch back to dashboard since games are locked
     const activeTab = document.querySelector('.app-tab.active');
     if (activeTab && activeTab.id === 'tab-games') {
       switchTab('dashboard');
@@ -946,80 +1537,7 @@ function showToast(title, desc) {
   toastTimeout = setTimeout(() => toast.classList.remove('show'), 3500);
 }
 
-// ─── Export (Ctrl + I) ──────────────────────────────────────────────────────
 
-function exportClients() {
-  if (clients.length === 0) {
-    showToast('⚠ Nenhum dado', 'Não ha clientes para exportar.');
-    return;
-  }
-
-  const json = JSON.stringify(clients, null, 2);
-  const blob = new Blob([json], { type: 'application/json' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  const date = new Date().toLocaleDateString('pt-BR').replace(/\//g, '-');
-
-  a.href = url;
-  a.download = `clientes_novo_sorriso_${date}.json`;
-  a.click();
-  URL.revokeObjectURL(url);
-
-  showToast('📥 Backup Realizado!', `${clients.length} clientes exportados.`);
-}
-
-// Keyboard shortcuts
-document.addEventListener('keydown', (e) => {
-  if (e.ctrlKey && e.key === 'i') {
-    e.preventDefault();
-    exportClients();
-  }
-  if (e.key === 'Escape') {
-    closeClientModal();
-    const menu = document.getElementById('context-menu');
-    if (menu) menu.classList.remove('active');
-  }
-});
-
-// Close modal on background clicks
-document.getElementById('client-modal').addEventListener('click', function (e) {
-  if (e.target === this) closeClientModal();
-});
-
-// Phone & CPF Input Masks
-function applyInputMasks() {
-  const phoneInput = document.getElementById('client-phone');
-  if (phoneInput) {
-    phoneInput.addEventListener('input', function () {
-      let value = this.value.replace(/\D/g, '');
-      if (value.length <= 10) {
-        value = value.replace(/^(\d{2})(\d{4})(\d{0,4})$/, '($1) $2-$3');
-      } else {
-        value = value.replace(/^(\d{2})(\d{5})(\d{0,4})$/, '($1) $2-$3');
-      }
-      this.value = value;
-    });
-  }
-
-  const cpfInput = document.getElementById('client-cpf');
-  if (cpfInput) {
-    cpfInput.addEventListener('input', function () {
-      let value = this.value.replace(/\D/g, '');
-      value = value.replace(/^(\d{3})(\d{3})(\d{3})(\d{0,2})$/, '$1.$2.$3-$4');
-      this.value = value;
-    });
-  }
-}
-
-function escapeHtml(str) {
-  if (!str) return '';
-  return String(str)
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#39;');
-}
 
 // ─── 3-in-1 Cute Arcade Games Engine ───────────────────────────────────────
 
@@ -1641,6 +2159,265 @@ function drawFlappyGame() {
   ctx.beginPath();
   ctx.ellipse(px - 14, py - 4, 6, 8 + flap, Math.PI / 6, 0, Math.PI * 2);
   ctx.fill();
+}
+
+function applyInputMasks() {
+  const phoneInput = document.getElementById('profile-client-phone');
+  if (phoneInput) {
+    phoneInput.addEventListener('input', function () {
+      let value = this.value.replace(/\D/g, '');
+      if (value.length <= 10) {
+        value = value.replace(/^(\d{2})(\d{4})(\d{0,4})$/, '($1) $2-$3');
+      } else {
+        value = value.replace(/^(\d{2})(\d{5})(\d{0,4})$/, '($1) $2-$3');
+      }
+      this.value = value;
+    });
+  }
+
+  const cpfInput = document.getElementById('profile-client-cpf');
+  if (cpfInput) {
+    cpfInput.addEventListener('input', function () {
+      let value = this.value.replace(/\D/g, '');
+      value = value.replace(/^(\d{3})(\d{3})(\d{3})(\d{0,2})$/, '$1.$2.$3-$4');
+      this.value = value;
+    });
+  }
+}
+
+// ─── Calendar / Agenda Functions ───────────────────────────────────────────
+
+let calendarCurrentDate = new Date();
+let calendarSelectedDate = '';
+
+function renderCalendar() {
+  const container = document.getElementById('calendar-days-container');
+  const monthYearHeader = document.getElementById('calendar-month-year');
+  if (!container || !monthYearHeader) return;
+
+  const year = calendarCurrentDate.getFullYear();
+  const month = calendarCurrentDate.getMonth(); // 0-indexed
+
+  // Format month and year header in Pt-BR
+  const monthName = calendarCurrentDate.toLocaleDateString('pt-BR', { month: 'long' });
+  monthYearHeader.textContent = `${capitalize(monthName)} ${year}`;
+
+  // First day of current month
+  const firstDay = new Date(year, month, 1);
+  const startDayIndex = firstDay.getDay(); // 0 = Sunday, 1 = Monday ...
+
+  // Days in current month
+  const totalDays = new Date(year, month + 1, 0).getDate();
+
+  // Days in previous month
+  const prevMonthTotalDays = new Date(year, month, 0).getDate();
+
+  container.innerHTML = '';
+
+  // 1. Render days from previous month to fill the first row
+  for (let i = startDayIndex - 1; i >= 0; i--) {
+    const dayNum = prevMonthTotalDays - i;
+    const prevDate = new Date(year, month - 1, dayNum);
+    const dateStr = formatDateKey(prevDate.getFullYear(), prevDate.getMonth() + 1, prevDate.getDate());
+    
+    const cell = createCalendarDayCell(dayNum, dateStr, true);
+    container.appendChild(cell);
+  }
+
+  // 2. Render days of the current month
+  const todayStr = getTodayDateStr();
+  for (let dayNum = 1; dayNum <= totalDays; dayNum++) {
+    const dateStr = formatDateKey(year, month + 1, dayNum);
+    const isToday = dateStr === todayStr;
+    const isSelected = dateStr === calendarSelectedDate;
+
+    const cell = createCalendarDayCell(dayNum, dateStr, false, isToday, isSelected);
+    container.appendChild(cell);
+  }
+
+  // 3. Render days from next month to complete the grid
+  const totalCells = startDayIndex + totalDays;
+  const remainingCells = (7 - (totalCells % 7)) % 7;
+  for (let i = 1; i <= remainingCells; i++) {
+    const nextDate = new Date(year, month + 1, i);
+    const dateStr = formatDateKey(nextDate.getFullYear(), nextDate.getMonth() + 1, nextDate.getDate());
+    
+    const cell = createCalendarDayCell(i, dateStr, true);
+    container.appendChild(cell);
+  }
+
+  // Render detail panel if a date is selected
+  if (calendarSelectedDate) {
+    renderCalendarDayDetails(calendarSelectedDate);
+  } else {
+    const detailSec = document.getElementById('calendar-day-details-section');
+    if (detailSec) detailSec.style.display = 'none';
+  }
+}
+
+function formatDateKey(year, month, day) {
+  const mm = String(month).padStart(2, '0');
+  const dd = String(day).padStart(2, '0');
+  return `${year}-${mm}-${dd}`;
+}
+
+function createCalendarDayCell(dayNum, dateStr, isOtherMonth, isToday = false, isSelected = false) {
+  const cell = document.createElement('div');
+  cell.className = 'calendar-day';
+  if (isOtherMonth) cell.classList.add('other-month');
+  if (isToday) cell.classList.add('today');
+  if (isSelected) cell.classList.add('selected');
+
+  // Count active consultations on this day
+  const dayAppts = appointments.filter(a => a.date === dateStr && a.status !== 'canceled');
+  const apptCount = dayAppts.length;
+
+  cell.onclick = () => {
+    calendarSelectedDate = dateStr;
+    // Switch active state visually
+    document.querySelectorAll('.calendar-day').forEach(el => el.classList.remove('selected'));
+    cell.classList.add('selected');
+    renderCalendarDayDetails(dateStr);
+  };
+
+  // HTML content
+  let indicatorsHtml = '';
+  if (apptCount > 0) {
+    if (apptCount <= 3) {
+      for (let i = 0; i < apptCount; i++) {
+        indicatorsHtml += '<span class="calendar-day-dot"></span>';
+      }
+    } else {
+      indicatorsHtml += `<span class="calendar-day-dot"></span><span class="calendar-day-badge">+${apptCount}</span>`;
+    }
+  }
+
+  cell.innerHTML = `
+    <span class="calendar-day-number">${dayNum}</span>
+    <div class="calendar-day-indicators">${indicatorsHtml}</div>
+  `;
+
+  return cell;
+}
+
+function adjustCalendarMonth(offset) {
+  calendarCurrentDate.setMonth(calendarCurrentDate.getMonth() + offset);
+  renderCalendar();
+}
+
+function renderCalendarDayDetails(dateStr) {
+  const section = document.getElementById('calendar-day-details-section');
+  const title = document.getElementById('calendar-selected-day-title');
+  const badge = document.getElementById('calendar-selected-day-badge');
+  const grid = document.getElementById('calendar-selected-day-grid');
+
+  if (!section || !title || !badge || !grid) return;
+
+  const dayAppts = appointments.filter(a => a.date === dateStr);
+  const activeApptsCount = dayAppts.filter(a => a.status !== 'canceled').length;
+
+  const parts = dateStr.split('-');
+  title.textContent = `Consultas do Dia ${parts[2]}/${parts[1]}/${parts[0]}`;
+  badge.textContent = `${activeApptsCount} Consulta${activeApptsCount !== 1 ? 's' : ''}`;
+  section.style.display = 'block';
+
+  if (dayAppts.length === 0) {
+    grid.innerHTML = `
+      <div class="empty-state" style="grid-column: 1 / -1; padding: 2rem;">
+        <i data-lucide="calendar-off"></i>
+        <p>Nenhuma consulta marcada para este dia.</p>
+      </div>
+    `;
+    lucide.createIcons();
+    return;
+  }
+
+  grid.innerHTML = dayAppts.map(appt => {
+    const client = clientsRegistry.find(c => c.id === appt.clientId) || { name: 'Desconhecido', phone: '', cpf: '' };
+    
+    let statusClass = 'status-waiting';
+    let statusLabel = 'Esperando';
+    if (appt.status === 'chegou') {
+      statusClass = 'status-confirmed';
+      statusLabel = 'Chegou';
+    } else if (appt.status === 'não veio') {
+      statusClass = 'status-canceled';
+      statusLabel = 'Não Veio';
+    } else if (appt.status === 'canceled') {
+      statusClass = 'status-canceled';
+      statusLabel = 'Cancelada';
+    }
+
+    return `
+      <div class="client-card" style="display: flex; flex-direction: column; justify-content: space-between; border-left: 4px solid var(--accent-primary);">
+        <div>
+          <div class="card-header-row">
+            <span class="card-time"><i data-lucide="clock"></i> ${appt.time}</span>
+            <span class="status-indicator ${statusClass}">${statusLabel}</span>
+          </div>
+          <h4 class="card-name" style="margin: 0.5rem 0 0.25rem 0;">${escapeHtml(client.name)}</h4>
+          <p class="card-procedure" style="font-size: 0.82rem; color: var(--text-secondary); margin-bottom: 0.5rem;">
+            <i data-lucide="stethoscope" style="width:12px;height:12px;display:inline-block;vertical-align:middle;margin-right:2px;"></i> ${escapeHtml(appt.type)}
+          </p>
+          <div style="font-size: 0.75rem; color: var(--text-muted);">
+            <div>Tel: ${escapeHtml(client.phone)}</div>
+            ${client.cpf ? `<div>CPF: ${escapeHtml(client.cpf)}</div>` : ''}
+          </div>
+        </div>
+        <div style="margin-top: 1rem; border-top: 1px solid var(--border-color); padding-top: 0.75rem; display: flex; justify-content: flex-end;">
+          <button type="button" class="btn-goto-dashboard" onclick="goToDashboardDate('${dateStr}')">
+            <i data-lucide="external-link" style="width:12px;height:12px;"></i>
+            <span>Ir para o Painel</span>
+          </button>
+        </div>
+      </div>
+    `;
+  }).join('');
+
+  lucide.createIcons();
+}
+
+function goToDashboardDate(dateStr) {
+  dashboardSelectedDate = dateStr;
+  
+  const datePicker = document.getElementById('dashboard-date-picker');
+  if (datePicker) {
+    datePicker.value = dateStr;
+  }
+
+  switchTab('dashboard');
+}
+
+function verificarProcedimentoOutrosAppt() {
+  const select = document.getElementById('appt-type');
+  const container = document.getElementById('container-outro-procedimento-appt');
+  const input = document.getElementById('outro-procedimento-appt');
+
+  if (select && container && input) {
+    if (select.value === 'Outros') {
+      container.style.display = 'block';
+      input.required = true;
+      input.focus();
+    } else {
+      container.style.display = 'none';
+      input.required = false;
+      input.value = '';
+    }
+  }
+}
+
+function openClientModalToday(prefilledTime = '09:00') {
+  openAppointmentModal(prefilledTime, getTodayDateStr());
+}
+
+function escapeHtml(str) {
+  if (!str) return '';
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
 }
 
 // ─── Initialize App ─────────────────────────────────────────────────────────

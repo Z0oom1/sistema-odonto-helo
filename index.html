@@ -70,10 +70,23 @@
                         </a>
                     </li>
 
+                    <li id="nav-calendar">
+                        <a href="#" onclick="switchTab('calendar')">
+                            <i data-lucide="calendar"></i>
+                            <span>Agenda</span>
+                        </a>
+                    </li>
+
                     <li id="nav-clients">
                         <a href="#" onclick="switchTab('clients')">
                             <i data-lucide="users"></i>
                             <span>Banco de Clientes</span>
+                        </a>
+                    </li>
+                    <li id="nav-history">
+                        <a href="#" onclick="switchTab('history')">
+                            <i data-lucide="history"></i>
+                            <span>Histórico</span>
                         </a>
                     </li>
                     <li id="nav-templates">
@@ -147,9 +160,9 @@
                     <p id="greeting-subtitle">Veja a lista cronológica de atendimentos.</p>
                 </div>
                 <div class="top-bar-actions">
-                    <button class="btn btn-primary" onclick="openClientModal()" id="btn-add-client-top">
+                    <button class="btn btn-primary" onclick="handleTopBarAction()" id="btn-top-action">
                         <i data-lucide="plus"></i>
-                        <span>Adicionar Cliente</span>
+                        <span id="btn-top-action-text">Adicionar Consulta</span>
                     </button>
                 </div>
             </header>
@@ -176,23 +189,91 @@
                     </div>
                 </div>
 
+                <!-- Date Navigation Bar -->
+                <div class="dashboard-date-nav-container">
+                    <button class="btn btn-secondary btn-date-nav" onclick="adjustDashboardDate(-1)" title="Dia Anterior">
+                        <i data-lucide="chevron-left"></i>
+                    </button>
+                    <div class="dashboard-date-wrapper">
+                        <i data-lucide="calendar" class="icon-date-picker"></i>
+                        <input type="date" id="dashboard-date-picker" onchange="onDashboardDateChange()">
+                    </div>
+                    <button class="btn btn-secondary btn-date-nav" onclick="adjustDashboardDate(1)" title="Próximo Dia">
+                        <i data-lucide="chevron-right"></i>
+                    </button>
+                </div>
+
                 <!-- Helper Banner -->
                 <div class="helper-banner">
                     <i data-lucide="info"></i>
-                    <span>Dica: Clique com o **botão direito** (ou toque longo no celular) em qualquer cliente para
-                        abrir o menu de ações!</span>
+                    <span>Dica: Clique com o **botão direito** (ou toque longo no celular) em qualquer consulta para abrir o menu de ações!</span>
                 </div>
 
-                <!-- Chronological Client List (Strict Order Ascending) -->
+                <!-- Today's Appointments -->
                 <div class="panel-section">
                     <div class="section-header">
-                        <h3><i data-lucide="calendar" class="icon-primary"></i> Próximos Atendimentos (Ordem
-                            Cronológica)</h3>
-                        <p class="section-desc">Clientes organizados por ordem crescente de data e hora de agendamento.
-                        </p>
+                        <h3><i data-lucide="calendar-check" class="icon-primary"></i> <span id="label-today-appointments">Consultas do Dia</span></h3>
+                        <p class="section-desc">Consultas agendadas para a data selecionada acima.</p>
+                    </div>
+                    <div class="client-grid" id="today-appointments-grid"></div>
+                </div>
+
+                <!-- Tomorrow's Appointments -->
+                <div class="panel-section">
+                    <div class="section-header">
+                        <h3><i data-lucide="calendar-days" class="icon-primary"></i> <span id="label-tomorrow-appointments">Consultas de Amanhã</span></h3>
+                        <p class="section-desc">Consultas agendadas para o dia seguinte da data selecionada.</p>
+                    </div>
+                    <div class="client-grid" id="tomorrow-appointments-grid"></div>
+                </div>
+            </section>
+
+            <!-- Calendar / Agenda Tab -->
+            <section id="tab-calendar" class="app-tab">
+                <div class="panel-section">
+                    <div class="section-header-row" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem;">
+                        <div>
+                            <h3><i data-lucide="calendar" class="icon-primary"></i> Agenda Mensal</h3>
+                            <p class="section-desc">Visualize seus agendamentos no calendário e selecione um dia para detalhar.</p>
+                        </div>
                     </div>
 
-                    <div class="client-grid" id="upcoming-grid"></div>
+                    <div class="calendar-container">
+                        <div class="calendar-header-nav">
+                            <button type="button" class="btn btn-secondary" onclick="adjustCalendarMonth(-1)">
+                                <i data-lucide="chevron-left"></i>
+                            </button>
+                            <h4 id="calendar-month-year">—</h4>
+                            <button type="button" class="btn btn-secondary" onclick="adjustCalendarMonth(1)">
+                                <i data-lucide="chevron-right"></i>
+                            </button>
+                        </div>
+                        
+                        <div class="calendar-weekdays">
+                            <div>Dom</div>
+                            <div>Seg</div>
+                            <div>Ter</div>
+                            <div>Qua</div>
+                            <div>Qui</div>
+                            <div>Sex</div>
+                            <div>Sáb</div>
+                        </div>
+                        
+                        <div class="calendar-days-grid" id="calendar-days-container">
+                            <!-- Populated dynamically -->
+                        </div>
+                    </div>
+
+                    <!-- Selected Day Detail View -->
+                    <div class="selected-day-container" id="calendar-day-details-section" style="display: none; margin-top: 1.5rem;">
+                        <div class="section-header-row" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; border-bottom: 1px solid var(--border-color); padding-bottom: 0.5rem;">
+                            <h4 id="calendar-selected-day-title" style="margin: 0; color: var(--text-primary);">Consultas do Dia</h4>
+                            <span class="badge" id="calendar-selected-day-badge" style="background-color: var(--accent-primary); color: white;">0 Consultas</span>
+                        </div>
+                        <div class="client-grid" id="calendar-selected-day-grid">
+                            <!-- Populated dynamically -->
+                        </div>
+                    </div>
                 </div>
             </section>
 
@@ -257,6 +338,36 @@
                     </div>
 
                     <div class="client-grid" id="all-clients-grid"></div>
+                </div>
+            </section>
+
+            <!-- History Tab -->
+            <section id="tab-history" class="app-tab">
+                <div class="panel-section">
+                    <div class="section-header">
+                        <h3><i data-lucide="history" class="icon-primary"></i> Histórico de Consultas</h3>
+                        <p class="section-desc">Consultas já finalizadas (chegou/não veio) ou canceladas de dias passados.</p>
+                    </div>
+
+                    <div class="control-bar">
+                        <div class="search-input-wrapper">
+                            <i data-lucide="search"></i>
+                            <input type="text" id="history-search" placeholder="Buscar no histórico por nome..." oninput="filterHistory()">
+                        </div>
+                        <div class="filters-wrapper">
+                            <div class="select-wrapper">
+                                <i data-lucide="filter"></i>
+                                <select id="filter-history-status" onchange="filterHistory()">
+                                    <option value="all">Todos os Status</option>
+                                    <option value="chegou">Chegou</option>
+                                    <option value="não veio">Não Veio</option>
+                                    <option value="canceled">Cancelado</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="client-grid" id="history-grid"></div>
                 </div>
             </section>
 
@@ -407,53 +518,96 @@
         </main>
     </div>
 
-    <!-- Client Modal (Add/Edit) - Simplified & Beautiful Redesign -->
+    <!-- Client Modal (Add/Edit Profile) -->
     <div class="modal-overlay" id="client-modal">
         <div class="modal-card">
             <div class="modal-header">
-                <h3 id="modal-title"><i data-lucide="user-plus"></i> Novo Cliente</h3>
+                <h3 id="client-modal-title"><i data-lucide="user-plus"></i> Novo Cliente</h3>
                 <button class="modal-close-btn" onclick="closeClientModal()">
                     <i data-lucide="x"></i>
                 </button>
             </div>
-            <form id="client-form" onsubmit="saveClient(event)">
-                <input type="hidden" id="client-id">
-
+            <form id="client-form" onsubmit="saveClientProfile(event)">
+                <input type="hidden" id="profile-client-id">
                 <div class="modal-body">
-                    <!-- Client Name -->
                     <div class="form-group">
-                        <label for="client-name">Nome do Cliente <span class="required">*</span></label>
+                        <label for="profile-client-name">Nome do Cliente <span class="required">*</span></label>
                         <div class="input-wrapper">
                             <i data-lucide="user"></i>
-                            <input type="text" id="client-name" required placeholder="Digite o nome completo">
+                            <input type="text" id="profile-client-name" required placeholder="Digite o nome completo">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group flex-1">
+                            <label for="profile-client-phone">Telefone (WhatsApp) <span class="required">*</span></label>
+                            <div class="input-wrapper">
+                                <i data-lucide="phone"></i>
+                                <input type="tel" id="profile-client-phone" required placeholder="(00) 00000-0000">
+                            </div>
+                        </div>
+                        <div class="form-group flex-1">
+                            <label for="profile-client-cpf">CPF <span class="optional">(Opcional)</span></label>
+                            <div class="input-wrapper">
+                                <i data-lucide="credit-card"></i>
+                                <input type="text" id="profile-client-cpf" placeholder="000.000.000-00">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" onclick="closeClientModal()">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">
+                        <i data-lucide="save"></i>
+                        <span>Salvar Cliente</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Appointment Modal (Book Consultation) -->
+    <div class="modal-overlay" id="appointment-modal">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h3 id="appt-modal-title"><i data-lucide="calendar-plus"></i> Nova Consulta</h3>
+                <button class="modal-close-btn" onclick="closeAppointmentModal()">
+                    <i data-lucide="x"></i>
+                </button>
+            </div>
+            <form id="appointment-form" onsubmit="saveAppointment(event)">
+                <input type="hidden" id="appt-id">
+                <input type="hidden" id="appt-client-id" required>
+
+                <div class="modal-body">
+                    <!-- Client Selection -->
+                    <div class="form-group">
+                        <label>Cliente Selecionado <span class="required">*</span></label>
+                        <div style="display: flex; gap: 0.5rem; align-items: center;">
+                            <div class="input-wrapper flex-1">
+                                <i data-lucide="user"></i>
+                                <input type="text" id="appt-client-name" readonly placeholder="Selecione um cliente..." required>
+                            </div>
+                            <button type="button" class="btn btn-secondary" onclick="openClientSearchModal()">
+                                <i data-lucide="search"></i>
+                                <span>Buscar</span>
+                            </button>
                         </div>
                     </div>
 
-                    <!-- Phone and CPF -->
-                    <div class="form-row">
-                        <div class="form-group flex-1">
-                            <label for="client-phone">Telefone (WhatsApp) <span class="required">*</span></label>
-                            <div class="input-wrapper">
-                                <i data-lucide="phone"></i>
-                                <input type="tel" id="client-phone" required placeholder="(00) 00000-0000">
-                            </div>
-                        </div>
-                        <div class="form-group flex-1">
-                            <label for="client-cpf">CPF <span class="optional">(Opcional)</span></label>
-                            <div class="input-wrapper">
-                                <i data-lucide="credit-card"></i>
-                                <input type="text" id="client-cpf" placeholder="000.000.000-00">
-                            </div>
+                    <!-- Read-only Client Details for feedback -->
+                    <div class="form-row" id="appt-client-details-row" style="display: none; background-color: var(--bg-primary); padding: 0.5rem; border-radius: var(--border-radius-sm); margin-bottom: 1rem; border: 1px dashed var(--border-color);">
+                        <div style="font-size: 0.75rem; color: var(--text-secondary);">
+                            <strong>Telefone:</strong> <span id="appt-client-phone-label">—</span> | 
+                            <strong>CPF:</strong> <span id="appt-client-cpf-label">—</span>
                         </div>
                     </div>
 
                     <!-- Procedure Type -->
                     <div class="form-group">
-                        <label for="client-type">Procedimento / Consulta <span class="required">*</span></label>
+                        <label for="appt-type">Procedimento / Consulta <span class="required">*</span></label>
                         <div class="select-wrapper border-input">
                             <i data-lucide="stethoscope"></i>
-                            <!-- Adicionado o onchange apontando para o id correto 'client-type' -->
-                            <select id="client-type" required onchange="verificarProcedimentoOutros()">
+                            <select id="appt-type" required onchange="verificarProcedimentoOutrosAppt()">
                                 <option value="" disabled selected>Escolha o tipo de consulta</option>
                                 <option value="Consulta Geral">Consulta Geral / Avaliação</option>
                                 <option value="Limpeza & Profilaxia">Limpeza & Profilaxia</option>
@@ -468,39 +622,41 @@
                         </div>
                     </div>
 
-                    <!-- Campo oculto corrigido estruturalmente para o padrão profissional -->
-                    <div class="form-group" id="container-outro-procedimento" style="display: none; margin-top: 10px;">
-                        <label for="outro-procedimento">Informe o nome do procedimento:</label>
+                    <div class="form-group" id="container-outro-procedimento-appt" style="display: none; margin-top: 10px;">
+                        <label for="outro-procedimento-appt">Informe o nome do procedimento:</label>
                         <div class="input-wrapper">
                             <i data-lucide="edit-3"></i>
-                            <input type="text" id="outro-procedimento" placeholder="Ex: Clareamento Caseiro">
+                            <input type="text" id="outro-procedimento-appt" placeholder="Ex: Clareamento Caseiro">
                         </div>
                     </div>
+
                     <!-- Date and Time Fields -->
                     <div class="form-row">
                         <div class="form-group flex-1">
-                            <label for="client-date">Data <span class="required">*</span></label>
+                            <label for="appt-date">Data <span class="required">*</span></label>
                             <div class="input-wrapper custom-datetime-picker">
                                 <i data-lucide="calendar"></i>
-                                <input type="date" id="client-date" required>
+                                <input type="date" id="appt-date" required>
                             </div>
                         </div>
                         <div class="form-group flex-1">
-                            <label for="client-time">Hora <span class="required">*</span></label>
+                            <label for="appt-time">Hora <span class="required">*</span></label>
                             <div class="input-wrapper custom-datetime-picker">
                                 <i data-lucide="clock"></i>
-                                <input type="time" id="client-time" required>
+                                <input type="time" id="appt-time" required>
                             </div>
                         </div>
                     </div>
 
-                    <!-- Client Status -->
+                    <!-- Appointment Status -->
                     <div class="form-group">
-                        <label for="client-status">Status do Agendamento</label>
+                        <label for="appt-status">Status do Agendamento</label>
                         <div class="select-wrapper border-input">
                             <i data-lucide="toggle-left"></i>
-                            <select id="client-status">
-                                <option value="confirmed">Confirmado / Ativo</option>
+                            <select id="appt-status">
+                                <option value="esperando">Esperando</option>
+                                <option value="chegou">Chegou</option>
+                                <option value="não veio">Não Veio</option>
                                 <option value="canceled">Cancelado</option>
                             </select>
                         </div>
@@ -508,13 +664,74 @@
                 </div>
 
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" onclick="closeClientModal()">Cancelar</button>
+                    <button type="button" class="btn btn-secondary" onclick="closeAppointmentModal()">Cancelar</button>
                     <button type="submit" class="btn btn-primary">
                         <i data-lucide="save"></i>
-                        <span>Confirmar Salvar</span>
+                        <span>Confirmar Consulta</span>
                     </button>
                 </div>
             </form>
+        </div>
+    </div>
+
+    <!-- Client Search & Select Modal -->
+    <div class="modal-overlay" id="client-search-modal">
+        <div class="modal-card" style="max-width: 500px;">
+            <div class="modal-header">
+                <h3><i data-lucide="users"></i> Selecionar Cliente</h3>
+                <button class="modal-close-btn" onclick="closeClientSearchModal()">
+                    <i data-lucide="x"></i>
+                </button>
+            </div>
+            <div class="modal-body" style="padding-top: 1rem;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; gap: 0.5rem; flex-wrap: wrap;">
+                    <span style="font-size: 0.78rem; color: var(--text-secondary);">Selecione um cliente cadastrado na lista abaixo:</span>
+                    <button type="button" class="btn btn-secondary" style="padding: 0.25rem 0.5rem; font-size: 0.72rem; display: flex; align-items: center; gap: 0.25rem;" onclick="closeClientSearchModal(); openClientModal();">
+                        <i data-lucide="user-plus" style="width: 12px; height: 12px;"></i>
+                        <span>Novo Cliente</span>
+                    </button>
+                </div>
+                <div class="search-input-wrapper" style="max-width: 100%; margin-bottom: 1rem;">
+                    <i data-lucide="search"></i>
+                    <input type="text" id="modal-client-search" placeholder="Buscar por nome, telefone ou CPF..." oninput="filterModalClients()">
+                </div>
+                <div class="modal-clients-list" id="modal-clients-list-container" style="max-height: 300px; overflow-y: auto; border: 1px solid var(--border-color); border-radius: var(--border-radius-md);">
+                    <!-- Populated dynamically -->
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" onclick="closeClientSearchModal()">Fechar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Status Selection Modal -->
+    <div class="modal-overlay" id="status-modal">
+        <div class="modal-card" style="max-width: 380px;">
+            <div class="modal-header">
+                <h3><i data-lucide="check-square"></i> Atualizar Status</h3>
+                <button class="modal-close-btn" onclick="closeStatusModal()">
+                    <i data-lucide="x"></i>
+                </button>
+            </div>
+            <div class="modal-body" style="padding: 1.5rem; display: flex; flex-direction: column; gap: 1rem;">
+                <input type="hidden" id="status-modal-appt-id">
+                <button type="button" class="btn btn-status-select btn-status-waiting" id="btn-status-waiting" onclick="selectStatus('esperando')">
+                    <i data-lucide="clock"></i>
+                    <span>Esperando</span>
+                </button>
+                <button type="button" class="btn btn-status-select btn-status-arrived" id="btn-status-arrived" onclick="selectStatus('chegou')">
+                    <i data-lucide="check-circle-2"></i>
+                    <span>Chegou</span>
+                </button>
+                <button type="button" class="btn btn-status-select btn-status-noshow" id="btn-status-noshow" onclick="selectStatus('não veio')">
+                    <i data-lucide="x-circle"></i>
+                    <span>Não Veio</span>
+                </button>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" onclick="closeStatusModal()">Cancelar</button>
+            </div>
         </div>
     </div>
 
