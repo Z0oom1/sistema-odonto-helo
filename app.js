@@ -709,8 +709,10 @@ function saveClient(event) {
 
   const appointmentDate = parseLocalDateTime(date, time);
   const now = new Date();
-  if (appointmentDate < now) {
-    showToast('⚠ Horário Passado', 'Não é permitido agendar em data/hora passada.');
+  const diffMs = now - appointmentDate;
+  const maxPastMs = 4 * 60 * 60 * 1000; // 4 hours in milliseconds
+  if (diffMs > maxPastMs) {
+    showToast('⚠ Horário Passado', 'Não é permitido agendar mais de 4 horas após o horário.');
     return;
   }
 
