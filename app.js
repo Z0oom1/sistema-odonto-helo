@@ -137,6 +137,15 @@ function sortAppointments(apptArray) {
   return sortChronologically(apptArray);
 }
 
+function sortClientsByName(clientsArray) {
+  if (!Array.isArray(clientsArray)) return [];
+  return clientsArray.sort((a, b) => {
+    const nameA = (a && a.name) ? String(a.name).trim().toLowerCase() : '';
+    const nameB = (b && b.name) ? String(b.name).trim().toLowerCase() : '';
+    return nameA.localeCompare(nameB, 'pt', { sensitivity: 'base' });
+  });
+}
+
 function migrateData() {
   const oldRaw = localStorage.getItem(STORAGE_KEY);
   if (oldRaw) {
@@ -776,15 +785,66 @@ function buildClientCard(client) {
 }
 
 function filterClients() {
-  const search = document.getElementById('client-search').value.toLowerCase().trim();
+  const searchInput = document.getElementById('client-search');
+  const search = searchInput ? searchInput.value.toLowerCase().trim() : '';
+
+  const statusInput = document.getElementById('filter-status');
+  const statusFilter = statusInput ? statusInput.value : 'all';
+
+  const timeframeInput = document.getElementById('filter-timeframe');
+  const timeframeFilter = timeframeInput ? timeframeInput.value : 'all';
+
   let filtered = [...clientsRegistry];
 
+  // 1. Search term filter (Name, Phone, CPF)
   if (search) {
-    filtered = filtered.filter(c =>
-      c.name.toLowerCase().includes(search) ||
-      c.phone.includes(search) ||
-      (c.cpf && c.cpf.includes(search))
-    );
+    filtered = filtered.filter(c => {
+      const name = c.name ? String(c.name).toLowerCase() : '';
+      const phone = c.phone ? String(c.phone) : '';
+      const cpf = c.cpf ? String(c.cpf) : '';
+      return name.includes(search) || phone.includes(search) || cpf.includes(search);
+    });
+  }
+
+  // 2. Status filter based on appointments
+  if (statusFilter !== 'all') {
+    filtered = filtered.filter(c => {
+      const clientAppts = appointments.filter(a => a.clientId === c.id);
+      if (statusFilter === 'confirmed') {
+        return clientAppts.some(a => a.status === 'esperando' || a.status === 'chegou');
+      } else if (statusFilter === 'canceled') {
+        return clientAppts.some(a => a.status === 'canceled' || a.status === 'não veio');
+      }
+      return true;
+    });
+  }
+
+  // 3. Timeframe filter based on appointments
+  if (timeframeFilter !== 'all') {
+    const todayStr = getTodayDateStr();
+    
+    // Calculate tomorrow's date string
+    const tomorrowDate = new Date();
+    tomorrowDate.setDate(tomorrowDate.getDate() + 1);
+    const tomorrowStr = formatDateKey(tomorrowDate.getFullYear(), tomorrowDate.getMonth() + 1, tomorrowDate.getDate());
+
+    filtered = filtered.filter(c => {
+      const clientAppts = appointments.filter(a => a.clientId === c.id);
+      if (clientAppts.length === 0) return false;
+
+      return clientAppts.some(a => {
+        if (timeframeFilter === 'today') {
+          return a.date === todayStr;
+        } else if (timeframeFilter === 'tomorrow') {
+          return a.date === tomorrowStr;
+        } else if (timeframeFilter === 'upcoming') {
+          return a.date > tomorrowStr;
+        } else if (timeframeFilter === 'past') {
+          return a.date < todayStr;
+        }
+        return true;
+      });
+    });
   }
 
   renderClientsTable(filtered);
