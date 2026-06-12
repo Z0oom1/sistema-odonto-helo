@@ -576,29 +576,35 @@
             </div>
             <form id="appointment-form" onsubmit="saveAppointment(event)">
                 <input type="hidden" id="appt-id">
-                <input type="hidden" id="appt-client-id" required>
+                <input type="hidden" id="appt-client-id">
 
                 <div class="modal-body">
-                    <!-- Client Selection -->
-                    <div class="form-group">
-                        <label>Cliente Selecionado <span class="required">*</span></label>
-                        <div style="display: flex; gap: 0.5rem; align-items: center;">
-                            <div class="input-wrapper flex-1">
-                                <i data-lucide="user"></i>
-                                <input type="text" id="appt-client-name" readonly placeholder="Selecione um cliente..." required>
-                            </div>
-                            <button type="button" class="btn btn-secondary" onclick="openClientSearchModal()">
-                                <i data-lucide="search"></i>
-                                <span>Buscar</span>
-                            </button>
+                    <!-- Client Name with autocomplete -->
+                    <div class="form-group" style="position: relative;">
+                        <label for="appt-client-name">Nome do Cliente <span class="required">*</span></label>
+                        <div class="input-wrapper">
+                            <i data-lucide="user"></i>
+                            <input type="text" id="appt-client-name" required placeholder="Digite o nome do cliente..." autocomplete="off" oninput="onApptClientNameInput()">
                         </div>
+                        <div id="appt-client-suggestions" class="autocomplete-dropdown" style="display:none;"></div>
+                        <p id="appt-client-match-info" style="font-size: 0.72rem; margin-top: 0.25rem; color: var(--text-muted);"></p>
                     </div>
 
-                    <!-- Read-only Client Details for feedback -->
-                    <div class="form-row" id="appt-client-details-row" style="display: none; background-color: var(--bg-primary); padding: 0.5rem; border-radius: var(--border-radius-sm); margin-bottom: 1rem; border: 1px dashed var(--border-color);">
-                        <div style="font-size: 0.75rem; color: var(--text-secondary);">
-                            <strong>Telefone:</strong> <span id="appt-client-phone-label">—</span> | 
-                            <strong>CPF:</strong> <span id="appt-client-cpf-label">—</span>
+                    <!-- Phone and CPF -->
+                    <div class="form-row">
+                        <div class="form-group flex-1">
+                            <label for="appt-client-phone">Telefone (WhatsApp) <span class="required">*</span></label>
+                            <div class="input-wrapper">
+                                <i data-lucide="phone"></i>
+                                <input type="tel" id="appt-client-phone" required placeholder="(00) 00000-0000">
+                            </div>
+                        </div>
+                        <div class="form-group flex-1">
+                            <label for="appt-client-cpf">CPF <span class="optional">(Opcional)</span></label>
+                            <div class="input-wrapper">
+                                <i data-lucide="credit-card"></i>
+                                <input type="text" id="appt-client-cpf" placeholder="000.000.000-00">
+                            </div>
                         </div>
                     </div>
 

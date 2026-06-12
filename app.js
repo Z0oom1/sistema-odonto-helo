@@ -42,7 +42,8 @@ let clientsRegistry = [];
 let appointments = [];
 let dashboardSelectedDate = '';
 let currentTab = 'dashboard';
-let activeClientIdForCtx = null;
+let activeItemIdForCtx = null;
+let activeItemTypeForCtx = null;
 
 let activeTemplates = {
   tomorrow: [],
@@ -1188,7 +1189,16 @@ function openAppointmentModal(prefilledTime = '09:00', prefilledDate = null) {
   document.getElementById('appointment-form').reset();
   document.getElementById('appt-id').value = '';
   document.getElementById('appt-client-id').value = '';
-  document.getElementById('appt-client-details-row').style.display = 'none';
+  document.getElementById('appt-client-name').value = '';
+  document.getElementById('appt-client-phone').value = '';
+  document.getElementById('appt-client-cpf').value = '';
+  document.getElementById('appt-client-match-info').textContent = '';
+  document.getElementById('appt-client-suggestions').style.display = 'none';
+
+  // Enable client fields for new entries
+  document.getElementById('appt-client-name').readOnly = false;
+  document.getElementById('appt-client-phone').readOnly = false;
+  document.getElementById('appt-client-cpf').readOnly = false;
 
   const dateValue = prefilledDate || dashboardSelectedDate || getTodayDateStr();
   document.getElementById('appt-date').value = dateValue;
@@ -1197,10 +1207,13 @@ function openAppointmentModal(prefilledTime = '09:00', prefilledDate = null) {
 
   modal.classList.add('active');
   lucide.createIcons();
+
+  setTimeout(() => document.getElementById('appt-client-name').focus(), 100);
 }
 
 function closeAppointmentModal() {
   document.getElementById('appointment-modal').classList.remove('active');
+  document.getElementById('appt-client-suggestions').style.display = 'none';
 }
 
 function openAppointmentEditModal(apptId) {
@@ -1214,10 +1227,15 @@ function openAppointmentEditModal(apptId) {
   document.getElementById('appt-id').value = appt.id;
   document.getElementById('appt-client-id').value = appt.clientId;
   document.getElementById('appt-client-name').value = client.name;
-  
-  document.getElementById('appt-client-phone-label').textContent = client.phone;
-  document.getElementById('appt-client-cpf-label').textContent = client.cpf || 'Não Informado';
-  document.getElementById('appt-client-details-row').style.display = 'block';
+  document.getElementById('appt-client-phone').value = client.phone;
+  document.getElementById('appt-client-cpf').value = client.cpf || '';
+  document.getElementById('appt-client-match-info').textContent = 'Cliente existente vinculado.';
+  document.getElementById('appt-client-suggestions').style.display = 'none';
+
+  // Allow editing client details
+  document.getElementById('appt-client-name').readOnly = false;
+  document.getElementById('appt-client-phone').readOnly = false;
+  document.getElementById('appt-client-cpf').readOnly = false;
 
   const select = document.getElementById('appt-type');
   const optionExists = Array.from(select.options).some(opt => opt.value === appt.type);
@@ -1242,11 +1260,73 @@ function openAppointmentEditModal(apptId) {
   lucide.createIcons();
 }
 
+// ─── Appointment Client Autocomplete ────────────────────────────────────────
+
+function onApptClientNameInput() {
+  const query = document.getElementById('appt-client-name').value.trim().toLowerCase();
+  const suggestionsEl = document.getElementById('appt-client-suggestions');
+  const matchInfoEl = document.getElementById('appt-client-match-info');
+
+  if (query.length < 2) {
+    suggestionsEl.style.display = 'none';
+    matchInfoEl.textContent = '';
+    document.getElementById('appt-client-id').value = '';
+    return;
+  }
+
+  const matches = clientsRegistry.filter(c =>
+    c.name.toLowerCase().includes(query) ||
+    c.phone.replace(/\D/g, '').includes(query.replace(/\D/g, ''))
+  ).slice(0, 6);
+
+  if (matches.length === 0) {
+    suggestionsEl.style.display = 'none';
+    matchInfoEl.textContent = 'Novo cliente - sera criado automaticamente ao salvar.';
+    matchInfoEl.style.color = 'var(--accent-primary)';
+    document.getElementById('appt-client-id').value = '';
+    return;
+  }
+
+  suggestionsEl.innerHTML = matches.map(c => `
+    <div class="autocomplete-item" onclick="selectApptClient('${c.id}')">
+      <strong>${c.name}</strong>
+      <span style="font-size: 0.72rem; color: var(--text-secondary);">${c.phone}${c.cpf ? ' • ' + c.cpf : ''}</span>
+    </div>
+  `).join('');
+  suggestionsEl.style.display = 'block';
+  matchInfoEl.textContent = '';
+}
+
+function selectApptClient(clientId) {
+  const client = clientsRegistry.find(c => c.id === clientId);
+  if (!client) return;
+
+  document.getElementById('appt-client-id').value = client.id;
+  document.getElementById('appt-client-name').value = client.name;
+  document.getElementById('appt-client-phone').value = client.phone;
+  document.getElementById('appt-client-cpf').value = client.cpf || '';
+  document.getElementById('appt-client-suggestions').style.display = 'none';
+  document.getElementById('appt-client-match-info').textContent = 'Cliente existente selecionado.';
+  document.getElementById('appt-client-match-info').style.color = 'var(--success-color, #22c55e)';
+}
+
+// Close autocomplete when clicking outside
+document.addEventListener('click', function(e) {
+  const suggestionsEl = document.getElementById('appt-client-suggestions');
+  if (suggestionsEl && !suggestionsEl.contains(e.target) && e.target.id !== 'appt-client-name') {
+    suggestionsEl.style.display = 'none';
+  }
+});
+
 function saveAppointment(event) {
   event.preventDefault();
 
   const id = document.getElementById('appt-id').value;
-  const clientId = document.getElementById('appt-client-id').value;
+  let clientId = document.getElementById('appt-client-id').value;
+  const clientName = document.getElementById('appt-client-name').value.trim();
+  const clientPhone = document.getElementById('appt-client-phone').value.trim();
+  const clientCpf = document.getElementById('appt-client-cpf').value.trim();
+
   let type = document.getElementById('appt-type').value;
   if (type === 'Outros') {
     type = document.getElementById('outro-procedimento-appt').value.trim();
@@ -1255,12 +1335,16 @@ function saveAppointment(event) {
   const time = document.getElementById('appt-time').value;
   const status = document.getElementById('appt-status').value;
 
-  if (!clientId) {
-    showToast('⚠ Erro', 'Por favor, selecione um cliente.');
+  if (!clientName) {
+    showToast('Erro', 'Por favor, informe o nome do cliente.');
+    return;
+  }
+  if (!clientPhone) {
+    showToast('Erro', 'Por favor, informe o telefone do cliente.');
     return;
   }
   if (!type) {
-    showToast('⚠ Erro', 'Por favor, especifique o procedimento.');
+    showToast('Erro', 'Por favor, especifique o procedimento.');
     return;
   }
 
@@ -1269,12 +1353,46 @@ function saveAppointment(event) {
   const diffMs = now - appointmentDate;
   const maxPastMs = 4 * 60 * 60 * 1000;
   if (diffMs > maxPastMs) {
-    showToast('⚠ Horário Passado', 'Não é permitido agendar mais de 4 horas após o horário.');
+    showToast('Horario Passado', 'Nao e permitido agendar mais de 4 horas apos o horario.');
     return;
   }
 
-  const client = clientsRegistry.find(c => c.id === clientId);
-  const clientName = client ? client.name : 'Cliente';
+  // --- Auto-create or match client ---
+  const normalizePhone = (p) => p.replace(/\D/g, '');
+  const phoneNorm = normalizePhone(clientPhone);
+
+  if (clientId) {
+    // Update existing client data
+    const existingIdx = clientsRegistry.findIndex(c => c.id === clientId);
+    if (existingIdx !== -1) {
+      clientsRegistry[existingIdx].name = clientName;
+      clientsRegistry[existingIdx].phone = clientPhone;
+      if (clientCpf) clientsRegistry[existingIdx].cpf = clientCpf;
+      saveClientsRegistry();
+    }
+  } else {
+    // Try to find existing client by phone
+    const existingByPhone = clientsRegistry.find(c => normalizePhone(c.phone) === phoneNorm);
+    if (existingByPhone) {
+      clientId = existingByPhone.id;
+      // Update name and cpf if provided
+      existingByPhone.name = clientName;
+      if (clientCpf) existingByPhone.cpf = clientCpf;
+      saveClientsRegistry();
+    } else {
+      // Create new client automatically
+      const newClient = {
+        id: generateId(),
+        name: clientName,
+        phone: clientPhone,
+        cpf: clientCpf,
+        createdAt: new Date().toISOString()
+      };
+      clientsRegistry.push(newClient);
+      clientId = newClient.id;
+      saveClientsRegistry();
+    }
+  }
 
   if (id) {
     const idx = appointments.findIndex(a => a.id === id);
@@ -1312,7 +1430,7 @@ function saveAppointment(event) {
   closeAppointmentModal();
   renderAll();
 
-  showToast('💾 Salvo com sucesso', `Consulta de ${clientName} salva.`);
+  showToast('Salvo com sucesso', `Consulta de ${clientName} salva.`);
 }
 
 function cancelAppointment(apptId) {
@@ -1383,7 +1501,7 @@ function switchTab(tabName) {
 }
 
 function handleTopBarAction() {
-  if (currentTab === 'dashboard') {
+  if (currentTab === 'dashboard' || currentTab === 'calendar') {
     openAppointmentModal();
   } else if (currentTab === 'clients') {
     openClientModal();
@@ -1395,7 +1513,7 @@ function updateTopBarButton() {
   const btnText = document.getElementById('btn-top-action-text');
   if (!btn || !btnText) return;
 
-  if (currentTab === 'dashboard') {
+  if (currentTab === 'dashboard' || currentTab === 'calendar') {
     btn.style.display = 'inline-flex';
     btnText.textContent = 'Adicionar Consulta';
   } else if (currentTab === 'clients') {
