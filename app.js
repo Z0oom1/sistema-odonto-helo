@@ -896,12 +896,18 @@ function selectClientForAppointment(clientId) {
   const client = clientsRegistry.find(c => c.id === clientId);
   if (!client) return;
 
+  // Preenche os dados do cliente nos campos do formulário de consulta
   document.getElementById('appt-client-id').value = client.id;
   document.getElementById('appt-client-name').value = client.name;
+  document.getElementById('appt-client-phone').value = client.phone || '';
+  document.getElementById('appt-client-cpf').value = client.cpf || '';
+
+  // Limpa sugestões e info de match se existirem
+  const matchInfo = document.getElementById('appt-client-match-info');
+  if (matchInfo) matchInfo.textContent = '✓ Cliente cadastrado selecionado';
   
-  document.getElementById('appt-client-phone-label').textContent = client.phone;
-  document.getElementById('appt-client-cpf-label').textContent = client.cpf || 'Não Informado';
-  document.getElementById('appt-client-details-row').style.display = 'block';
+  const suggestions = document.getElementById('appt-client-suggestions');
+  if (suggestions) suggestions.style.display = 'none';
 
   closeClientSearchModal();
 }

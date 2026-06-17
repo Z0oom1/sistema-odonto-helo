@@ -581,7 +581,12 @@
                 <div class="modal-body">
                     <!-- Client Name with autocomplete -->
                     <div class="form-group" style="position: relative;">
-                        <label for="appt-client-name">Nome do Cliente <span class="required">*</span></label>
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.25rem;">
+                            <label for="appt-client-name" style="margin-bottom: 0;">Nome do Cliente <span class="required">*</span></label>
+                            <a href="#" onclick="openClientSearchModal(); return false;" style="font-size: 0.72rem; color: var(--accent-primary); text-decoration: none; font-weight: 600;">
+                                <i data-lucide="search" style="width: 12px; height: 12px; vertical-align: middle;"></i> Buscar Cadastrado
+                            </a>
+                        </div>
                         <div class="input-wrapper">
                             <i data-lucide="user"></i>
                             <input type="text" id="appt-client-name" required placeholder="Digite o nome do cliente..." autocomplete="off" oninput="onApptClientNameInput()">
