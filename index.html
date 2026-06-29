@@ -1,0 +1,871 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-theme="light">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema Odonto da Helo - Novo Sorriso</title>
+
+    <!-- SEO and Meta Tags -->
+    <meta name="description"
+        content="Sistema minimalista de controle de clientes e lembretes para a clínica odontológica Novo Sorriso.">
+    <meta name="author" content="Helo">
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Fredoka:wght@300..700&family=Plus+Jakarta+Sans:wght@300..800&family=Quicksand:wght@300..700&display=swap"
+        rel="stylesheet">
+
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <!-- Project Stylesheet -->
+    <link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+    <!-- Background Glow Blobs for Glassmorphism -->
+    <div class="glow-spot glow-spot-1"></div>
+    <div class="glow-spot glow-spot-2"></div>
+    <div class="glow-spot glow-spot-3"></div>
+
+    <!-- Helo Sparkles Background Container -->
+    <div id="sparkle-container" class="sparkle-container"></div>
+
+    <!-- Loading Screen -->
+    <div id="loading-screen" class="loading-screen active">
+        <div class="loading-container">
+            <div class="loading-logo">
+                <div class="brand-icon-loading">
+                    <img src="logo.png" class="brand-logo-img" alt="Novo Sorriso">
+                </div>
+            </div>
+            <h2 class="loading-title">Novo Sorriso</h2>
+            <p class="loading-subtitle">Carregando seu sistema odontologico...</p>
+            <div class="loading-spinner">
+                <div class="spinner-ring"></div>
+            </div>
+            <p class="loading-message">Preparando tudo com carinho 🌸</p>
+        </div>
+    </div>
+
+    <!-- App Container -->
+    <div class="app-layout">
+
+        <!-- Sidebar / Navigation -->
+        <aside class="sidebar">
+            <div class="sidebar-brand">
+                <div class="brand-icon">
+                    <img src="logo.png" class="brand-logo-img" alt="Novo Sorriso">
+                </div>
+                <div class="brand-text">
+                    <h1>Novo Sorriso</h1>
+                    <span>Odonto da Helo</span>
+                </div>
+            </div>
+
+            <nav class="sidebar-nav">
+                <ul>
+                    <li class="active" id="nav-dashboard">
+                        <a href="#" onclick="switchTab('dashboard')">
+                            <i data-lucide="layout-dashboard"></i>
+                            <span>Consultas</span>
+                        </a>
+                    </li>
+
+                    <li id="nav-calendar">
+                        <a href="#" onclick="switchTab('calendar')">
+                            <i data-lucide="calendar"></i>
+                            <span>Agenda</span>
+                        </a>
+                    </li>
+
+                    <li id="nav-clients">
+                        <a href="#" onclick="switchTab('clients')">
+                            <i data-lucide="users"></i>
+                            <span>Clientes</span>
+                        </a>
+                    </li>
+                    <li id="nav-history">
+                        <a href="#" onclick="switchTab('history')">
+                            <i data-lucide="history"></i>
+                            <span>Histórico</span>
+                        </a>
+                    </li>
+                    <li id="nav-templates">
+                        <a href="#" onclick="switchTab('templates')">
+                            <i data-lucide="message-square-text"></i>
+                            <span>Textos de Envio</span>
+                        </a>
+                    </li>
+                    <li id="nav-games" style="display: none;" class="helo-only-nav">
+                        <a href="#" onclick="switchTab('games')">
+                            <i data-lucide="gamepad-2"></i>
+                            <span>Joguinhos 🎮🌸</span>
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+
+            <!-- Cute Mascot Area (Helo Theme specific) -->
+            <div class="mascot-container" id="helo-mascot">
+                <div class="mascot-card">
+                    <div class="cute-tooth-mascot">
+                        <div class="tooth-body">
+                            <div class="tooth-root left"></div>
+                            <div class="tooth-root right"></div>
+                            <div class="tooth-face">
+                                <div class="tooth-eyes">
+                                    <span class="eye left"></span>
+                                    <span class="eye right"></span>
+                                </div>
+                                <div class="tooth-blush"></div>
+                                <div class="tooth-mouth"></div>
+                            </div>
+                            <div class="tooth-wings">
+                                <div class="wing left"></div>
+                                <div class="wing right"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mascot-bubble">
+                        <p id="mascot-speech">Olá, Helo! Vamos cuidar de lindos sorrisos hoje? 🌸</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Theme Picker -->
+            <div class="theme-selector-container">
+                <span class="selector-title">Tema do Sistema</span>
+                <div class="theme-picker">
+                    <button class="theme-btn active" id="btn-theme-light" onclick="setTheme('light')"
+                        title="Modo Claro">
+                        <i data-lucide="sun"></i>
+                        <span>Claro</span>
+                    </button>
+                    <button class="theme-btn" id="btn-theme-dark" onclick="setTheme('dark')" title="Modo Escuro">
+                        <i data-lucide="moon"></i>
+                        <span>Escuro</span>
+                    </button>
+                    <button class="theme-btn" id="btn-theme-helo" onclick="setTheme('helo')" title="Modo Helo 🌸">
+                        <i data-lucide="heart"></i>
+                        <span>Helo 🌸</span>
+                    </button>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content Area -->
+        <main class="main-content">
+            <header class="top-bar">
+                <div class="welcome-message">
+                    <h2 id="greeting-title">Bom dia, Helo! 👋</h2>
+                    <p id="greeting-subtitle">Veja a lista cronológica de atendimentos.</p>
+                </div>
+                <div class="top-bar-actions">
+                    <button class="btn btn-primary" onclick="handleTopBarAction()" id="btn-top-action">
+                        <i data-lucide="plus"></i>
+                        <span id="btn-top-action-text">Adicionar Consulta</span>
+                    </button>
+                </div>
+            </header>
+
+            <!-- Dashboard / Main Tab -->
+            <section id="tab-dashboard" class="app-tab active">
+                <!-- Compact Top Stats (Space saving) -->
+                <div class="stats-row">
+                    <div class="mini-stat">
+                        <span class="stat-num" id="stat-total-clients">0</span>
+                        <span class="stat-txt">clientes</span>
+                    </div>
+                    <div class="mini-stat">
+                        <span class="stat-num" id="stat-today-appointments">0</span>
+                        <span class="stat-txt">hoje</span>
+                    </div>
+                    <div class="mini-stat">
+                        <span class="stat-num" id="stat-tomorrow-appointments">0</span>
+                        <span class="stat-txt">amanhã</span>
+                    </div>
+                    <div class="mini-stat alert-num" id="stat-pending-badge">
+                        <span class="stat-num" id="stat-pending-contacts">0</span>
+                        <span class="stat-txt">avisos pendentes</span>
+                    </div>
+                </div>
+
+                <!-- Date Navigation Bar -->
+                <div class="dashboard-date-nav-container">
+                    <button class="btn btn-secondary btn-date-nav" onclick="adjustDashboardDate(-1)" title="Dia Anterior">
+                        <i data-lucide="chevron-left"></i>
+                    </button>
+                    <div class="dashboard-date-wrapper">
+                        <i data-lucide="calendar" class="icon-date-picker"></i>
+                        <input type="date" id="dashboard-date-picker" onchange="onDashboardDateChange()">
+                    </div>
+                    <button class="btn btn-secondary btn-date-nav" onclick="adjustDashboardDate(1)" title="Próximo Dia">
+                        <i data-lucide="chevron-right"></i>
+                    </button>
+                </div>
+
+                <!-- Helper Banner -->
+                <div class="helper-banner">
+                    <i data-lucide="info"></i>
+                    <span>Dica: Clique com o **botão direito** (ou toque longo no celular) em qualquer consulta para abrir o menu de ações!</span>
+                </div>
+
+                <!-- Today's Appointments -->
+                <div class="panel-section">
+                    <div class="section-header">
+                        <h3><i data-lucide="calendar-check" class="icon-primary"></i> <span id="label-today-appointments">Consultas do Dia</span></h3>
+                        <p class="section-desc">Consultas agendadas para a data selecionada acima.</p>
+                    </div>
+                    <div class="client-grid" id="today-appointments-grid"></div>
+                </div>
+
+                <!-- Tomorrow's Appointments -->
+                <div class="panel-section">
+                    <div class="section-header">
+                        <h3><i data-lucide="calendar-days" class="icon-primary"></i> <span id="label-tomorrow-appointments">Consultas de Amanhã</span></h3>
+                        <p class="section-desc">Consultas agendadas para o dia seguinte da data selecionada.</p>
+                    </div>
+                    <div class="client-grid" id="tomorrow-appointments-grid"></div>
+                </div>
+            </section>
+
+            <!-- Calendar / Agenda Tab -->
+            <section id="tab-calendar" class="app-tab">
+                <div class="panel-section">
+                    <div class="section-header-row" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem;">
+                        <div>
+                            <h3><i data-lucide="calendar" class="icon-primary"></i> Agenda Mensal</h3>
+                            <p class="section-desc">Visualize seus agendamentos no calendário e selecione um dia para detalhar.</p>
+                        </div>
+                    </div>
+
+                    <div class="calendar-container">
+                        <div class="calendar-header-nav">
+                            <button type="button" class="btn btn-secondary" onclick="adjustCalendarMonth(-1)">
+                                <i data-lucide="chevron-left"></i>
+                            </button>
+                            <h4 id="calendar-month-year">—</h4>
+                            <button type="button" class="btn btn-secondary" onclick="adjustCalendarMonth(1)">
+                                <i data-lucide="chevron-right"></i>
+                            </button>
+                        </div>
+                        
+                        <div class="calendar-weekdays">
+                            <div>Dom</div>
+                            <div>Seg</div>
+                            <div>Ter</div>
+                            <div>Qua</div>
+                            <div>Qui</div>
+                            <div>Sex</div>
+                            <div>Sáb</div>
+                        </div>
+                        
+                        <div class="calendar-days-grid" id="calendar-days-container">
+                            <!-- Populated dynamically -->
+                        </div>
+                    </div>
+
+                    <!-- Selected Day Detail View -->
+                    <div class="selected-day-container" id="calendar-day-details-section" style="display: none; margin-top: 1.5rem;">
+                        <div class="section-header-row" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; border-bottom: 1px solid var(--border-color); padding-bottom: 0.5rem;">
+                            <h4 id="calendar-selected-day-title" style="margin: 0; color: var(--text-primary);">Consultas do Dia</h4>
+                            <span class="badge" id="calendar-selected-day-badge" style="background-color: var(--accent-primary); color: white;">0 Consultas</span>
+                        </div>
+                        <div class="client-grid" id="calendar-selected-day-grid">
+                            <!-- Populated dynamically -->
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Today Tab -->
+            <section id="tab-today" class="app-tab">
+                <div class="panel-section">
+                    <div class="section-header-row"
+                        style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem;">
+                        <div>
+                            <h3 style="display: flex; align-items: center; gap: 0.5rem;"><i data-lucide="calendar-check"
+                                    class="icon-primary"></i> Agenda de Hoje</h3>
+                            <p class="section-desc">Gerencie a linha do tempo do dia de hoje e encaixe consultas nos
+                                horários vagos.</p>
+                        </div>
+                        <button class="btn btn-primary" onclick="openClientModalToday()">
+                            <i data-lucide="plus"></i>
+                            <span>Encaixar Hoje</span>
+                        </button>
+                    </div>
+
+                    <div class="today-timeline" id="today-timeline-container">
+                        <!-- Will be populated by JS -->
+                    </div>
+                </div>
+            </section>
+
+            <!-- All Clients Tab -->
+            <section id="tab-clients" class="app-tab">
+                <div class="panel-section">
+                    <div class="section-header">
+                        <h3><i data-lucide="database" class="icon-primary"></i> Banco Completo</h3>
+                        <p class="section-desc">Busque ou filtre todos os seus clientes cadastrados no sistema.</p>
+                    </div>
+
+                    <!-- Search and Filter Bar -->
+                    <div class="control-bar">
+                        <div class="search-input-wrapper">
+                            <i data-lucide="search"></i>
+                            <input type="text" id="client-search" placeholder="Buscar por nome, telefone ou CPF..."
+                                oninput="filterClients()">
+                        </div>
+                        <div class="filters-wrapper">
+                            <div class="select-wrapper">
+                                <i data-lucide="filter"></i>
+                                <select id="filter-status" onchange="filterClients()">
+                                    <option value="all">Todos os Status</option>
+                                    <option value="confirmed">Confirmados</option>
+                                    <option value="canceled">Cancelados</option>
+                                </select>
+                            </div>
+                            <div class="select-wrapper">
+                                <i data-lucide="clock"></i>
+                                <select id="filter-timeframe" onchange="filterClients()">
+                                    <option value="all">Qualquer Data</option>
+                                    <option value="today">Hoje</option>
+                                    <option value="tomorrow">Amanhã</option>
+                                    <option value="upcoming">Próximos</option>
+                                    <option value="past">Passados</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="client-grid" id="all-clients-grid"></div>
+                </div>
+            </section>
+
+            <!-- History Tab -->
+            <section id="tab-history" class="app-tab">
+                <div class="panel-section">
+                    <div class="section-header">
+                        <h3><i data-lucide="history" class="icon-primary"></i> Histórico de Consultas</h3>
+                        <p class="section-desc">Consultas já finalizadas (chegou/não veio) ou canceladas de dias passados.</p>
+                    </div>
+
+                    <div class="control-bar">
+                        <div class="search-input-wrapper">
+                            <i data-lucide="search"></i>
+                            <input type="text" id="history-search" placeholder="Buscar no histórico por nome..." oninput="filterHistory()">
+                        </div>
+                        <div class="filters-wrapper">
+                            <div class="select-wrapper">
+                                <i data-lucide="filter"></i>
+                                <select id="filter-history-status" onchange="filterHistory()">
+                                    <option value="all">Todos os Status</option>
+                                    <option value="chegou">Chegou</option>
+                                    <option value="não veio">Não Veio</option>
+                                    <option value="canceled">Cancelado</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="client-grid" id="history-grid"></div>
+                </div>
+            </section>
+
+            <!-- Message Templates Tab -->
+            <section id="tab-templates" class="app-tab">
+                <div class="panel-section">
+                    <div class="section-header">
+                        <h3><i data-lucide="message-square-text" class="icon-primary"></i> Personalização de Lembretes
+                        </h3>
+                        <p class="section-desc">Personalize as mensagens automatizadas de WhatsApp. Use as seguintes
+                            tags para inserir dados automaticamente:</p>
+                        <div class="tags-helper">
+                            <span class="tag-badge"><code>[nome]</code> Nome do Paciente</span>
+                            <span class="tag-badge"><code>[procedimento]</code> Consulta/Procedimento</span>
+                            <span class="tag-badge"><code>[data]</code> Data da Consulta</span>
+                            <span class="tag-badge"><code>[hora]</code> Hora da Consulta</span>
+                            <span class="tag-badge"><code>[clinica]</code> Clínica Novo Sorriso</span>
+                        </div>
+                    </div>
+
+                    <form id="templates-form" onsubmit="saveTemplates(event)">
+                        <!-- Lembretes de Amanhã (1 dia antes) -->
+                        <div class="template-group-box">
+                            <h4 class="group-box-title">📅 Lembrete: 1 Dia de Antecedência (Amanhã)</h4>
+                            <p class="group-box-desc">O sistema selecionará aleatoriamente uma das 3 versões abaixo para
+                                manter as mensagens dinâmicas e naturais.</p>
+
+                            <div class="form-group">
+                                <div class="template-header-row">
+                                    <label for="template-tomorrow-0">Versão 1 (Principal)</label>
+                                    <button type="button" class="btn-text-link"
+                                        onclick="resetSingleTemplate('tomorrow', 0)">Restaurar Padrão</button>
+                                </div>
+                                <textarea id="template-tomorrow-0" rows="3" class="template-textarea"
+                                    required></textarea>
+                            </div>
+                            <div class="form-group">
+                                <div class="template-header-row">
+                                    <label for="template-tomorrow-1">Versão 2 (Amigável)</label>
+                                    <button type="button" class="btn-text-link"
+                                        onclick="resetSingleTemplate('tomorrow', 1)">Restaurar Padrão</button>
+                                </div>
+                                <textarea id="template-tomorrow-1" rows="3" class="template-textarea"
+                                    required></textarea>
+                            </div>
+                            <div class="form-group">
+                                <div class="template-header-row">
+                                    <label for="template-tomorrow-2">Versão 3 (Carinhosa)</label>
+                                    <button type="button" class="btn-text-link"
+                                        onclick="resetSingleTemplate('tomorrow', 2)">Restaurar Padrão</button>
+                                </div>
+                                <textarea id="template-tomorrow-2" rows="3" class="template-textarea"
+                                    required></textarea>
+                            </div>
+                        </div>
+
+                        <!-- Lembretes do Dia da Consulta (Hoje) -->
+                        <div class="template-group-box">
+                            <h4 class="group-box-title">⚡ Lembrete: No Dia da Consulta (Hoje)</h4>
+                            <p class="group-box-desc">Mensagens enviadas no dia do atendimento. Também rotaciona entre
+                                as 3 opções abaixo.</p>
+
+                            <div class="form-group">
+                                <div class="template-header-row">
+                                    <label for="template-today-0">Versão 1 (Principal)</label>
+                                    <button type="button" class="btn-text-link"
+                                        onclick="resetSingleTemplate('today', 0)">Restaurar Padrão</button>
+                                </div>
+                                <textarea id="template-today-0" rows="3" class="template-textarea" required></textarea>
+                            </div>
+                            <div class="form-group">
+                                <div class="template-header-row">
+                                    <label for="template-today-1">Versão 2 (Amigável)</label>
+                                    <button type="button" class="btn-text-link"
+                                        onclick="resetSingleTemplate('today', 1)">Restaurar Padrão</button>
+                                </div>
+                                <textarea id="template-today-1" rows="3" class="template-textarea" required></textarea>
+                            </div>
+                            <div class="form-group">
+                                <div class="template-header-row">
+                                    <label for="template-today-2">Versão 3 (Divertida)</label>
+                                    <button type="button" class="btn-text-link"
+                                        onclick="resetSingleTemplate('today', 2)">Restaurar Padrão</button>
+                                </div>
+                                <textarea id="template-today-2" rows="3" class="template-textarea" required></textarea>
+                            </div>
+                        </div>
+
+                        <div class="template-footer-actions">
+                            <button type="button" class="btn btn-secondary" onclick="resetAllTemplates()">Restaurar
+                                Todos os Padrões</button>
+                            <button type="submit" class="btn btn-primary"><i data-lucide="save"></i> Salvar
+                                Alterações</button>
+                        </div>
+                    </form>
+                </div>
+            </section>
+
+            <!-- Helo Theme Easter Egg Games Tab -->
+            <section id="tab-games" class="app-tab">
+                <div class="panel-section games-panel">
+                    <div class="section-header">
+                        <h3><i data-lucide="gamepad-2" class="icon-primary"></i> Estação de Joguinhos da Helo 🌸🎮</h3>
+                        <p class="section-desc">Divirta-se jogando mini-games clássicos infinitos estilizados no tema da
+                            Helo!</p>
+                    </div>
+
+                    <!-- Mini Games Selector Navigation -->
+                    <div class="games-selector-grid">
+                        <div class="game-select-card active" id="game-card-snake" onclick="selectMiniGame('snake')">
+                            <div class="game-card-icon"><i data-lucide="sparkles"></i></div>
+                            <h4>Cobrinha do Sorriso</h4>
+                            <p>Coma os brilhos estelares e cresça sem bater nas paredes!</p>
+                        </div>
+                        <div class="game-select-card" id="game-card-dino" onclick="selectMiniGame('dino')">
+                            <div class="game-card-icon"><i data-lucide="activity"></i></div>
+                            <h4>Dentinho Corre</h4>
+                            <p>Ajude o Dentinho a pular por cima dos doces e cáries!</p>
+                        </div>
+                        <div class="game-select-card" id="game-card-flappy" onclick="selectMiniGame('flappy')">
+                            <div class="game-card-icon"><i data-lucide="wind"></i></div>
+                            <h4>Dentinho Voador</h4>
+                            <p>Bata as asinhas do dente e desvie dos chocolates gigantes!</p>
+                        </div>
+                    </div>
+
+                    <!-- Canvas Gameplay Container -->
+                    <div class="game-arena-wrapper">
+                        <div class="game-score-bar">
+                            <div>Recorde: <span id="game-highscore" class="high-score-val">0</span> ⭐</div>
+                            <div>Pontuação: <span id="game-currentscore" class="current-score-val">0</span> ⭐</div>
+                        </div>
+
+                        <div class="canvas-container">
+                            <canvas id="game-canvas" width="600" height="400"></canvas>
+                            <!-- Start / GameOver overlay screen -->
+                            <div id="game-overlay" class="game-overlay">
+                                <div class="overlay-content">
+                                    <h3 id="overlay-title">Cobrinha do Sorriso 🐍</h3>
+                                    <p id="overlay-instruction">Pressione a tecla **ESPAÇO** para iniciar!</p>
+                                    <span class="game-keys-hint" id="overlay-controls">Use as Setas do teclado</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- Client Modal (Add/Edit Profile) -->
+    <div class="modal-overlay" id="client-modal">
+        <div class="modal-card">
+            <div class="modal-header">
+                <div class="modal-header-left">
+                    <div class="modal-icon-badge" id="client-modal-badge">
+                        <i data-lucide="user-plus"></i>
+                    </div>
+                    <div class="modal-header-text">
+                        <h3 id="client-modal-title">Novo Cliente</h3>
+                        <p class="modal-subtitle">Preencha os dados do cliente para salvar o perfil.</p>
+                    </div>
+                </div>
+                <button class="modal-close-btn" onclick="closeClientModal()" type="button">
+                    <i data-lucide="x"></i>
+                </button>
+            </div>
+            <form id="client-form" onsubmit="saveClientProfile(event)">
+                <input type="hidden" id="profile-client-id">
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label for="profile-client-name">Nome do Cliente <span class="required">*</span></label>
+                        <div class="input-wrapper">
+                            <i data-lucide="user"></i>
+                            <input type="text" id="profile-client-name" required placeholder="Digite o nome completo">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group flex-1">
+                            <label for="profile-client-phone">Telefone (WhatsApp) <span class="required">*</span></label>
+                            <div class="input-wrapper">
+                                <i data-lucide="phone"></i>
+                                <input type="tel" id="profile-client-phone" required placeholder="(00) 00000-0000">
+                            </div>
+                        </div>
+                        <div class="form-group flex-1">
+                            <label for="profile-client-cpf">CPF <span class="optional">(Opcional)</span></label>
+                            <div class="input-wrapper">
+                                <i data-lucide="credit-card"></i>
+                                <input type="text" id="profile-client-cpf" placeholder="000.000.000-00">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Sexo <span class="required">*</span></label>
+                        <div class="gender-selector">
+                            <input type="hidden" id="profile-client-gender" value="male">
+                            <button type="button" class="gender-btn active" id="gender-male" onclick="setGender('male')" title="Masculino">
+                                <i data-lucide="mars"></i>
+                                <span>Homem</span>
+                            </button>
+                            <button type="button" class="gender-btn" id="gender-female" onclick="setGender('female')" title="Feminino">
+                                <i data-lucide="venus"></i>
+                                <span>Mulher</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" onclick="closeClientModal()">
+                        <i data-lucide="x"></i>
+                        <span>Cancelar</span>
+                    </button>
+                    <button type="submit" class="btn btn-primary">
+                        <i data-lucide="save"></i>
+                        <span>Salvar Cliente</span>
+                    </button>
+                </div>
+                <div class="modal-security-info">
+                    <i data-lucide="lock"></i>
+                    <span>Seus dados estão protegidos e criptografados.</span>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Appointment Modal (Book Consultation) -->
+    <div class="modal-overlay" id="appointment-modal">
+        <div class="modal-card">
+            <div class="modal-header">
+                <div class="modal-header-left">
+                    <div class="modal-icon-badge" id="appt-modal-badge">
+                        <i data-lucide="calendar"></i>
+                    </div>
+                    <div class="modal-header-text">
+                        <h3 id="appt-modal-title">Nova Consulta</h3>
+                        <p class="modal-subtitle">Preencha os dados para agendar uma nova consulta.</p>
+                    </div>
+                </div>
+                <button class="modal-close-btn" onclick="closeAppointmentModal()" type="button">
+                    <i data-lucide="x"></i>
+                </button>
+            </div>
+            <form id="appointment-form" onsubmit="saveAppointment(event)">
+                <input type="hidden" id="appt-id">
+                <input type="hidden" id="appt-client-id">
+
+                <div class="modal-body">
+                    <!-- Client Name with autocomplete -->
+                    <div class="form-group" style="position: relative;">
+                        <label for="appt-client-name">Nome do Cliente <span class="required">*</span></label>
+                        <div class="input-wrapper">
+                            <i data-lucide="user"></i>
+                            <input type="text" id="appt-client-name" required placeholder="Digite o nome do cliente..." autocomplete="off" oninput="onApptClientNameInput()">
+                            <button type="button" class="input-right-btn" onclick="openClientSearchModal()" title="Buscar Cliente">
+                                <i data-lucide="search"></i>
+                            </button>
+                        </div>
+                        <div id="appt-client-suggestions" class="autocomplete-dropdown" style="display:none;"></div>
+                        <p id="appt-client-match-info" style="font-size: 0.72rem; margin-top: 0.25rem; color: var(--text-muted);"></p>
+                    </div>
+
+                    <!-- Phone and CPF -->
+                    <div class="form-row">
+                        <div class="form-group flex-1">
+                            <label for="appt-client-phone">Telefone (WhatsApp) <span class="required">*</span></label>
+                            <div class="input-wrapper">
+                                <i data-lucide="phone"></i>
+                                <input type="tel" id="appt-client-phone" required placeholder="(00) 00000-0000">
+                            </div>
+                        </div>
+                        <div class="form-group flex-1">
+                            <label for="appt-client-cpf">CPF <span class="optional">(Opcional)</span></label>
+                            <div class="input-wrapper">
+                                <i data-lucide="credit-card"></i>
+                                <input type="text" id="appt-client-cpf" placeholder="000.000.000-00">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Sexo <span class="required">*</span></label>
+                        <div class="gender-selector">
+                            <input type="hidden" id="appt-client-gender" value="male">
+                            <button type="button" class="gender-btn active" id="appt-gender-male" onclick="setApptGender('male')" title="Masculino">
+                                <i data-lucide="mars"></i>
+                                <span>Homem</span>
+                            </button>
+                            <button type="button" class="gender-btn" id="appt-gender-female" onclick="setApptGender('female')" title="Feminino">
+                                <i data-lucide="venus"></i>
+                                <span>Mulher</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Procedure Type -->
+                    <div class="form-group">
+                        <label for="appt-type">Procedimento / Consulta <span class="required">*</span></label>
+                        <div class="select-wrapper border-input">
+                            <i data-lucide="stethoscope"></i>
+                            <select id="appt-type" required onchange="verificarProcedimentoOutrosAppt()">
+                                <option value="" disabled selected>Escolha o tipo de consulta</option>
+                                <option value="Consulta Geral">Consulta Geral / Avaliação</option>
+                                <option value="Limpeza & Profilaxia">Limpeza & Profilaxia</option>
+                                <option value="Canal / Endodontia">Canal / Endodontia</option>
+                                <option value="Aparelho / Ortodontia">Aparelho / Ortodontia</option>
+                                <option value="Restauração">Restauração / Obturação</option>
+                                <option value="Extração / Cirurgia">Extração / Cirurgia</option>
+                                <option value="Implante / Prótese">Implante / Prótese</option>
+                                <option value="Clareamento Dental">Clareamento Dental</option>
+                                <option value="Outros">Outros</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-group" id="container-outro-procedimento-appt" style="display: none; margin-top: 10px;">
+                        <label for="outro-procedimento-appt">Informe o nome do procedimento:</label>
+                        <div class="input-wrapper">
+                            <i data-lucide="edit-3"></i>
+                            <input type="text" id="outro-procedimento-appt" placeholder="Ex: Clareamento Caseiro">
+                        </div>
+                    </div>
+
+                    <!-- Date and Time Fields -->
+                    <div class="form-row">
+                        <div class="form-group flex-1">
+                            <label for="appt-date">Data <span class="required">*</span></label>
+                            <div class="input-wrapper custom-datetime-picker">
+                                <i data-lucide="calendar"></i>
+                                <input type="date" id="appt-date" required>
+                            </div>
+                        </div>
+                        <div class="form-group flex-1">
+                            <label for="appt-time">Hora <span class="required">*</span></label>
+                            <div class="input-wrapper custom-datetime-picker">
+                                <i data-lucide="clock"></i>
+                                <input type="time" id="appt-time" required>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Appointment Status -->
+                    <div class="form-group">
+                        <label for="appt-status">Status do Agendamento</label>
+                        <div class="select-wrapper border-input">
+                            <i data-lucide="eye"></i>
+                            <select id="appt-status">
+                                <option value="esperando">Esperando</option>
+                                <option value="chegou">Chegou</option>
+                                <option value="não veio">Não Veio</option>
+                                <option value="canceled">Cancelado</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" onclick="closeAppointmentModal()">
+                        <i data-lucide="x"></i>
+                        <span>Cancelar</span>
+                    </button>
+                    <button type="submit" class="btn btn-primary">
+                        <i data-lucide="clipboard-check"></i>
+                        <span>Confirmar Consulta</span>
+                    </button>
+                </div>
+                <div class="modal-security-info">
+                    <i data-lucide="lock"></i>
+                    <span>Seus dados estão protegidos e criptografados.</span>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Client Search & Select Modal -->
+    <div class="modal-overlay" id="client-search-modal">
+        <div class="modal-card" style="max-width: 500px;">
+            <div class="modal-header">
+                <div class="modal-header-left">
+                    <div class="modal-icon-badge">
+                        <i data-lucide="users"></i>
+                    </div>
+                    <div class="modal-header-text">
+                        <h3>Selecionar Cliente</h3>
+                        <p class="modal-subtitle">Selecione um cliente cadastrado na lista abaixo.</p>
+                    </div>
+                </div>
+                <button class="modal-close-btn" onclick="closeClientSearchModal()" type="button">
+                    <i data-lucide="x"></i>
+                </button>
+            </div>
+            <div class="modal-body" style="padding-top: 1rem;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; gap: 0.5rem; flex-wrap: wrap;">
+                    <span style="font-size: 0.78rem; color: var(--text-secondary);">Selecione um cliente cadastrado na lista abaixo:</span>
+                    <button type="button" class="btn btn-secondary" style="padding: 0.25rem 0.5rem; font-size: 0.72rem; display: flex; align-items: center; gap: 0.25rem;" onclick="closeClientSearchModal(); openClientModal();">
+                        <i data-lucide="user-plus" style="width: 12px; height: 12px;"></i>
+                        <span>Novo Cliente</span>
+                    </button>
+                </div>
+                <div class="search-input-wrapper" style="max-width: 100%; margin-bottom: 1rem;">
+                    <i data-lucide="search"></i>
+                    <input type="text" id="modal-client-search" placeholder="Buscar por nome, telefone ou CPF..." oninput="filterModalClients()">
+                </div>
+                <div class="modal-clients-list" id="modal-clients-list-container" style="max-height: 300px; overflow-y: auto; border: 1px solid var(--border-color); border-radius: var(--border-radius-md);">
+                    <!-- Populated dynamically -->
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" onclick="closeClientSearchModal()">
+                    <i data-lucide="x"></i>
+                    <span>Fechar</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Status Selection Modal -->
+    <div class="modal-overlay" id="status-modal">
+        <div class="modal-card" style="max-width: 380px;">
+            <div class="modal-header">
+                <div class="modal-header-left">
+                    <div class="modal-icon-badge">
+                        <i data-lucide="check-square"></i>
+                    </div>
+                    <div class="modal-header-text">
+                        <h3>Atualizar Status</h3>
+                        <p class="modal-subtitle">Selecione o status de presença do cliente.</p>
+                    </div>
+                </div>
+                <button class="modal-close-btn" onclick="closeStatusModal()" type="button">
+                    <i data-lucide="x"></i>
+                </button>
+            </div>
+            <div class="modal-body" style="padding: 1.5rem; display: flex; flex-direction: column; gap: 1rem;">
+                <input type="hidden" id="status-modal-appt-id">
+                <button type="button" class="btn btn-status-select btn-status-waiting" id="btn-status-waiting" onclick="selectStatus('esperando')">
+                    <i data-lucide="clock"></i>
+                    <span>Esperando</span>
+                </button>
+                <button type="button" class="btn btn-status-select btn-status-arrived" id="btn-status-arrived" onclick="selectStatus('chegou')">
+                    <i data-lucide="check-circle-2"></i>
+                    <span>Chegou</span>
+                </button>
+                <button type="button" class="btn btn-status-select btn-status-noshow" id="btn-status-noshow" onclick="selectStatus('não veio')">
+                    <i data-lucide="x-circle"></i>
+                    <span>Não Veio</span>
+                </button>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" onclick="closeStatusModal()">
+                    <i data-lucide="x"></i>
+                    <span>Cancelar</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Floating Actions Context Menu -->
+    <div id="context-menu" class="context-menu">
+        <div class="context-menu-header">
+            <h4 id="ctx-client-name">Nome do Cliente</h4>
+            <p id="ctx-client-info">Procedimento</p>
+        </div>
+        <ul class="context-menu-list">
+            <li onclick="triggerCtxWhatsapp()" class="ctx-wpp-item" id="ctx-wpp-li">
+                <i data-lucide="message-circle"></i>
+                <span>Enviar Lembrete WhatsApp</span>
+            </li>
+            <li onclick="triggerCtxEdit()">
+                <i data-lucide="pencil"></i>
+                <span>Editar Informações</span>
+            </li>
+            <li onclick="triggerCtxCancel()" id="ctx-cancel-li">
+                <i data-lucide="x-circle"></i>
+                <span>Cancelar Agendamento</span>
+            </li>
+            <li onclick="triggerCtxDelete()" class="ctx-delete-item">
+                <i data-lucide="trash-2"></i>
+                <span>Excluir do Sistema</span>
+            </li>
+        </ul>
+    </div>
+
+    <!-- Hidden Export Alert Notification (Toast) -->
+    <div id="toast" class="toast">
+        <i data-lucide="download" class="toast-icon"></i>
+        <div class="toast-content">
+            <span class="toast-title">Dados Exportados!</span>
+            <span class="toast-desc">O arquivo clientes_odonto.json foi baixado com sucesso.</span>
+        </div>
+    </div>
+
+    <!-- App Script -->
+    <script src="app.js"></script>
+</body>
+
+</html>
